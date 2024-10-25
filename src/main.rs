@@ -13,7 +13,10 @@ mod board;
 mod game;
 use game::*;
 
-fn main()
+fn main() -> Result<(), Box<dyn std::error::Error>>
 {
     println!("Welcome gomokurs!");
+    let mut g = Game::new(10);
+    g.play()?;
+    Ok(())
 }
