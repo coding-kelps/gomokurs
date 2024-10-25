@@ -33,7 +33,7 @@ impl Board
         Board { size, cells }
     }
 
-    fn set_cell(
+    fn _set_cell(
         &mut self,
         x: u8,
         y: u8,
