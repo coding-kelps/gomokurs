@@ -5,7 +5,7 @@
 // - Une fonction pour placer un pion
 // - System de tour par tour
 // -
-use std::fmt;
+use std::{error::Error, fmt};
 
 #[derive(Debug, Clone)]
 pub enum CellStatus
@@ -31,6 +31,20 @@ impl Board
             .collect::<Vec<Vec<CellStatus>>>();
 
         Board { size, cells }
+    }
+
+    fn set_cell(
+        &mut self,
+        x: u8,
+        y: u8,
+        new_status: CellStatus,
+    ) -> Result<(), Box<dyn Error>>
+    {
+        if x > self.size || y > self.size {
+            return Err(format!("error {} or {} > {}", x, y, self.size).into());
+        }
+        self.cells[x as usize][y as usize] = new_status;
+        Ok(())
     }
 }
 
