@@ -1,11 +1,11 @@
-use std::{cell::Cell, error::Error, io};
+use std::{error::Error, io};
 
 use regex::Regex;
 
 use crate::board::*;
 
-#[derive(Debug)]
-enum Player
+#[derive(Debug, Clone, Copy)]
+pub enum Player
 {
     Black,
     White,
@@ -13,7 +13,7 @@ enum Player
 
 impl Player
 {
-    fn switch(self) -> Player
+    fn switch(&self) -> Player
     {
         match self {
             Player::White => Player::Black,
@@ -33,7 +33,7 @@ impl Into<CellStatus> for Player
     }
 }
 
-struct Game
+pub struct Game
 {
     board: Board,
     nb_turn: u16,
@@ -62,21 +62,24 @@ impl Game
                     break res.unwrap();
                 }
             };
-            self.board.set_cell(pos.0, pos.1, current_player.into());
+            self.board.set_cell(pos.0, pos.1, current_player.into())?;
             self.over = self.check_win(pos);
+            current_player = current_player.switch();
+            self.nb_turn += 1;
         }
         Ok(current_player)
     }
 
+    #[allow(dead_code)]
     fn check_row(
         &self,
         origin: (u16, u16),
-        axis: (u16, u16),
-        status: CellStatus,
+        _axis: (u16, u16),
+        _status: CellStatus,
     ) -> bool
     {
         let _corrected_origin = origin;
-        let mut nb_consecutive = 0u8;
+        let mut _nb_consecutive = 0u8;
 
         (0..10).into_iter();
 
@@ -85,7 +88,7 @@ impl Game
 
     fn check_win(
         &self,
-        last_move: (u16, u16),
+        _last_move: (u16, u16),
     ) -> bool
     {
         false
