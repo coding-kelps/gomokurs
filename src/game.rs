@@ -1,4 +1,4 @@
-use std::{error::Error, io};
+use std::{cell::Cell, error::Error, io};
 
 use regex::Regex;
 
@@ -33,6 +33,24 @@ impl Into<CellStatus> for Player
     }
 }
 
+enum CheckRowAxis {
+    Horizontal,
+    Vertical,
+    DiagonalUp,
+    DiagonalDown,
+}
+
+impl CheckRowAxis {
+    const fn value(&self) -> (i8, i8) {
+        match *self {
+            CheckRowAxis::Horizontal => (1, 0),
+            CheckRowAxis::Vertical => (0, 1),
+            CheckRowAxis::DiagonalUp => (1, -1),
+            CheckRowAxis::DiagonalDown => (1, 1),
+        }
+    }
+}
+
 pub struct Game
 {
     board: Board,
@@ -63,35 +81,57 @@ impl Game
                 }
             };
             self.board.set_cell(pos.0, pos.1, current_player.into())?;
-            self.over = self.check_win(pos);
+            self.over = self.check_win(pos, current_player);
             current_player = current_player.switch();
             self.nb_turn += 1;
         }
         Ok(current_player)
     }
 
-    #[allow(dead_code)]
     fn check_row(
         &self,
         origin: (u16, u16),
-        _axis: (u16, u16),
-        _status: CellStatus,
+        axis: CheckRowAxis,
+        status: CellStatus,
     ) -> bool
     {
-        let _corrected_origin = origin;
-        let mut _nb_consecutive = 0u8;
+        let mut nb_consecutive = 0u8;
 
-        (0..10).into_iter();
+        for i in -5..5 {
+            let axis_vec = axis.value();
+            let pos: (i32, i32) = (
+                origin.0 as i32 * (axis_vec.0 * i) as i32,
+                origin.1 as i32 * (axis_vec.1 * i) as i32,
+            );
+
+            if pos.0 < 0 || pos.1 < 0 || pos.0 >= self.board.size as i32 || pos.1 >= self.board.size as i32 {
+                continue;
+            } else {
+                if self.board.cells[pos.0 as usize][pos.1 as usize] == status {
+                    nb_consecutive += 1;
+
+                    if nb_consecutive >= 5 {
+                        return true
+                    }
+                } else {
+                    nb_consecutive = 0;
+                }
+            }
+        }
 
         false
     }
 
     fn check_win(
         &self,
-        _last_move: (u16, u16),
+        last_move: (u16, u16),
+        player: Player,
     ) -> bool
     {
-        false
+        self.check_row(last_move, CheckRowAxis::Horizontal, player.into())
+            || self.check_row(last_move, CheckRowAxis::Vertical, player.into())
+            || self.check_row(last_move, CheckRowAxis::DiagonalUp, player.into())
+            || self.check_row(last_move, CheckRowAxis::DiagonalDown, player.into())
     }
 
     fn player_input(

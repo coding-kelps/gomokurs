@@ -1,6 +1,6 @@
 use std::{error::Error, fmt};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum CellStatus
 {
     Available,
@@ -11,9 +11,8 @@ pub enum CellStatus
 #[derive(Debug)]
 pub struct Board
 {
-    #[allow(dead_code)]
-    size: u8,
-    cells: Vec<Vec<CellStatus>>,
+    pub size: u8,
+    pub cells: Vec<Vec<CellStatus>>,
 }
 
 impl Board
