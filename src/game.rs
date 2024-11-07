@@ -79,8 +79,7 @@ impl Game
         while self.over != true {
             println!("{}", self.board);
             let pos = loop {
-                let res = self.player_input(&current_player);
-                match res {
+                match self.player_input(&current_player) {
                     Ok(input) => break input,
                     Err(e) => eprintln!("{e}"),
                 }
