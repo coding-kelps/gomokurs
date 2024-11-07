@@ -1,4 +1,4 @@
-use std::{cell::Cell, error::Error, io};
+use std::{error::Error, io};
 
 use regex::Regex;
 
@@ -33,15 +33,18 @@ impl Into<CellStatus> for Player
     }
 }
 
-enum CheckRowAxis {
+enum CheckRowAxis
+{
     Horizontal,
     Vertical,
     DiagonalUp,
     DiagonalDown,
 }
 
-impl CheckRowAxis {
-    const fn value(&self) -> (i8, i8) {
+impl CheckRowAxis
+{
+    const fn value(&self) -> (i8, i8)
+    {
         match *self {
             CheckRowAxis::Horizontal => (1, 0),
             CheckRowAxis::Vertical => (0, 1),
@@ -73,11 +76,13 @@ impl Game
     pub fn play(&mut self) -> Result<Player, Box<dyn Error>>
     {
         let mut current_player = Player::White;
-        while self.over != false {
+        while self.over != true {
+            println!("{}", self.board);
             let pos = loop {
                 let res = self.player_input(&current_player);
-                if res.is_ok() {
-                    break res.unwrap();
+                match res {
+                    Ok(input) => break input,
+                    Err(e) => eprintln!("{e}"),
                 }
             };
             self.board.set_cell(pos.0, pos.1, current_player.into())?;
@@ -104,14 +109,18 @@ impl Game
                 origin.1 as i32 * (axis_vec.1 * i) as i32,
             );
 
-            if pos.0 < 0 || pos.1 < 0 || pos.0 >= self.board.size as i32 || pos.1 >= self.board.size as i32 {
+            if pos.0 < 0
+                || pos.1 < 0
+                || pos.0 >= self.board.size as i32
+                || pos.1 >= self.board.size as i32
+            {
                 continue;
             } else {
                 if self.board.cells[pos.0 as usize][pos.1 as usize] == status {
                     nb_consecutive += 1;
 
                     if nb_consecutive >= 5 {
-                        return true
+                        return true;
                     }
                 } else {
                     nb_consecutive = 0;
@@ -130,8 +139,16 @@ impl Game
     {
         self.check_row(last_move, CheckRowAxis::Horizontal, player.into())
             || self.check_row(last_move, CheckRowAxis::Vertical, player.into())
-            || self.check_row(last_move, CheckRowAxis::DiagonalUp, player.into())
-            || self.check_row(last_move, CheckRowAxis::DiagonalDown, player.into())
+            || self.check_row(
+                last_move,
+                CheckRowAxis::DiagonalUp,
+                player.into(),
+            )
+            || self.check_row(
+                last_move,
+                CheckRowAxis::DiagonalDown,
+                player.into(),
+            )
     }
 
     fn player_input(
@@ -149,10 +166,12 @@ impl Game
 
         let re = Regex::new(r"^(\d+), (\d+)$")?;
 
-        match re.captures(&buffer) {
+        match re.captures(&buffer.trim()) {
             Some(caps) => {
                 // TODO: Add custom error messages
-                Ok((caps[0].parse::<u16>()?, caps[1].parse::<u16>()?))
+                let x = caps[1].parse::<u16>()?;
+                let y = caps[2].parse::<u16>()?;
+                Ok((x, y))
             }
             None => Err("Invalid input format".into()),
         }
