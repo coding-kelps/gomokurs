@@ -9,6 +9,11 @@
 // - Faire une commande pour jouer depuis la CLI
 // X Restructurer en module
 
+// - protocol gomoku competition
+// - tcp: game is a server where 2 clients connect
+// -    listener for the server
+// -    associate protocol and server / client
+
 mod board;
 mod game;
 use game::*;
