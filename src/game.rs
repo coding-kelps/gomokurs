@@ -104,8 +104,8 @@ impl Game
         for i in -5..5 {
             let axis_vec = axis.value();
             let pos: (i32, i32) = (
-                origin.0 as i32 * (axis_vec.0 * i) as i32,
-                origin.1 as i32 * (axis_vec.1 * i) as i32,
+                origin.0 as i32 + (axis_vec.0 * i) as i32,
+                origin.1 as i32 + (axis_vec.1 * i) as i32,
             );
 
             if pos.0 < 0
