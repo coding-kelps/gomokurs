@@ -80,6 +80,7 @@ pub enum Player {
 
 impl Player
 {
+    #[allow(dead_code)]
     fn switch(&self) -> Player
     {
         match self {
