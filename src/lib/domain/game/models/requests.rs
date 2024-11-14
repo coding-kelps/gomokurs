@@ -44,3 +44,15 @@ pub enum ResetBoardError {
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }
+
+#[derive(Debug, Error)]
+pub enum NotifyBeginError {
+    #[error(transparent)]
+    Unknown(#[from] anyhow::Error),
+}
+
+#[derive(Debug, Error)]
+pub enum NotifyEndError {
+    #[error(transparent)]
+    Unknown(#[from] anyhow::Error),
+}

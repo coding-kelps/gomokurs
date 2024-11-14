@@ -43,6 +43,8 @@ impl Board
     {
         if position.x > self.size || position.y > self.size {
             Err(OutOfBounds{position, size: self.size})
+        } else if self.cells[x as usize][y as usize] != CellStatus::Available {
+            Err(UnavailableCell(position))
         }
 
         self.cells[x as usize][y as usize] = new_status;
@@ -64,6 +66,17 @@ impl Player
         match self {
             Player::White => Player::Black,
             Player::Black => Player::White,
+        }
+    }
+}
+
+impl Into<CellStatus> for Player
+{
+    fn into(self) -> CellStatus
+    {
+        match self {
+            Player::Black => CellStatus::Black,
+            Player::White => CellStatus::White,
         }
     }
 }
