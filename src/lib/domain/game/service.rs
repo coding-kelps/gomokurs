@@ -1,17 +1,17 @@
-use crate::domain::game::models::Turn;
-use crate::domain::game::ports::{GameStateRepository, PlayerNotifier};
+use crate::domain::game::models::{Position, CellStatus, Board, Player};
+use crate::domain::game::ports::{GameService, GameStateRepository, PlayerNotifier};
 
 #[derive(Debug, Clone)]
-pub struct Service
+pub struct Service<R, N>
 where
     R: GameStateRepository,
     N: PlayerNotifier,
 {
     repo: R,
-    notifier: PlayerNotifier,
+    notifier: N,
 }
 
-impl<R> Service<R>
+impl<R, N> Service<R, N>
 where
     R: GameStateRepository,
     N: PlayerNotifier,
@@ -21,46 +21,6 @@ where
             repo,
             notifier,
         }
-    }
-}
-
-enum CheckRowAxis
-{
-    Horizontal,
-    Vertical,
-    DiagonalUp,
-    DiagonalDown,
-}
-
-impl CheckRowAxis
-{
-    const fn value(&self) -> (i8, i8)
-    {
-        match *self {
-            CheckRowAxis::Horizontal => (1, 0),
-            CheckRowAxis::Vertical => (0, 1),
-            CheckRowAxis::DiagonalUp => (1, -1),
-            CheckRowAxis::DiagonalDown => (1, 1),
-        }
-    }
-}
-
-impl<R, N> Service<R, N>
-where
-    R: GameStateRepository,
-    N: PlayerNotifier,
-{
-    pub fn start(&self, req: &StartRequest) -> Result<(), ()> {
-        let size = match req.size {
-            Some(size) => size,
-            None => 10,
-        };
-
-        self.repo.init_board(size);
-
-        self.notifier.notify_begin();
-
-        Ok(())
     }
 
     fn check_row(
@@ -125,30 +85,59 @@ where
                 player.into(),
             )
     }
+}
 
-    pub fn play_turn(&self, req: &PlayTurnRequest) -> Result<(), ()> {
+enum CheckRowAxis
+{
+    Horizontal,
+    Vertical,
+    DiagonalUp,
+    DiagonalDown,
+}
+
+impl CheckRowAxis
+{
+    const fn value(&self) -> (i8, i8)
+    {
+        match *self {
+            CheckRowAxis::Horizontal => (1, 0),
+            CheckRowAxis::Vertical => (0, 1),
+            CheckRowAxis::DiagonalUp => (1, -1),
+            CheckRowAxis::DiagonalDown => (1, 1),
+        }
+    }
+}
+
+impl<R, N> GameService for Service<R, N>
+where
+    R: GameStateRepository,
+    N: PlayerNotifier,
+{
+    fn start(&self, req: &StartRequest) -> Result<(), ()> {
+        let size = match req.size {
+            Some(size) => size,
+            None => 10,
+        };
+
+        self.repo.init_board(size);
+
+        self.notifier.notify_begin();
+
+        Ok(())
+    }
+
+    fn play_turn(&self, req: &PlayTurnRequest) -> Result<(), ()> {
         let mut board = self.repo.get_board();
 
         if board.set_cell(req.position, CellStatus::Black).is_err() {
             Err(())
         }
 
-        self.repo.register_turn(position, CellStatus::Black);
+        self.repo.register_turn(req.position, CellStatus::Black);
 
         if self.check_win(req.position, Player::Black) {
             self.notifier.notify_end();
         }
-
-        Ok(())
-    }
-
-    pub fn reset(&self, req: &ResetRequest) -> Result<(), ()> {
-        let size = match req.size {
-            Some(size) => size,
-            None => 10,
-        };
-
-        self.repo.reset_board(size);
 
         Ok(())
     }

@@ -1,2 +1,5 @@
-pub mod boards;
-pub mod requests;
+mod board;
+mod requests;
+
+pub use board::*;
+pub use requests::*;
