@@ -122,10 +122,12 @@ where
             return Err(PlayTurnError::Unknown(anyhow!(e)));
         }
 
-        self.repo.register_turn(req.position, CellStatus::Black);
+        self.repo.register_turn(req.position, CellStatus::Black)
+            .map_err(|e| PlayTurnError::Unknown(anyhow!(e)))?;
 
         if self.check_win(&board, req.position, Player::Black) {
-            self.notifier.notify_end();
+            self.notifier.notify_end()
+                .map_err(|e| PlayTurnError::Unknown(anyhow!(e)))?;
         }
 
         Ok(())

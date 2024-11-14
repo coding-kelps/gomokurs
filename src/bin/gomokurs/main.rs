@@ -1,5 +1,7 @@
-use gomokurs::inbound::named_pipe;
+use gomokurs::inbound::NamedPipe;
 
 fn main() {
-    println!("Gomokurs!");
+    if let Err(e) = NamedPipe::new("./fifo") {
+        eprintln!("error: {}", e)
+    }
 }
