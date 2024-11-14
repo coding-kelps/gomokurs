@@ -1,7 +1,5 @@
-use crate::domain::game::models::{StartRequest, PlayTurnRequest};
+use crate::domain::game::models::{PlayTurnRequest, PlayTurnError};
 
 pub trait GameService {
-    fn start(&self, req: &StartRequest) -> Result<(), ()>;
-
-    fn play_turn(&mut self, req: &PlayTurnRequest) -> Result<(), ()>;
+    fn play_turn(&mut self, req: &PlayTurnRequest) -> Result<(), PlayTurnError>;
 }

@@ -1,5 +1,6 @@
-use crate::domain::game::models::{Position, CellStatus, Board, Player};
+use crate::domain::game::models::{Position, CellStatus, Board, Player, PlayTurnRequest, PlayTurnError};
 use crate::domain::game::ports::{GameService, GameStateRepository, PlayerNotifier};
+use anyhow::anyhow;
 
 #[derive(Debug, Clone)]
 pub struct Service<R, N>
@@ -25,7 +26,7 @@ where
 
     fn check_row(
         &self,
-        board: Board,
+        board: &Board,
         origin: Position,
         axis: CheckRowAxis,
         status: CellStatus,
@@ -36,8 +37,8 @@ where
         for i in -5..5 {
             let axis_vec = axis.value();
             let pos = Position {
-                x: (origin.x as i32 + (axis_vec.x * i) as i32) as u8,
-                y: (origin.y as i32 + (axis_vec.y * i) as i32) as u8,
+                x: (origin.x as i32 + (axis_vec.0 * i) as i32) as u8,
+                y: (origin.y as i32 + (axis_vec.1 * i) as i32) as u8,
             };
 
             if pos.x >= board.size || pos.y >= board.size
@@ -61,25 +62,25 @@ where
 
     fn check_win(
         &self,
-        board: Board,
+        board: &Board,
         last_move: Position,
         player: Player,
     ) -> bool
     {
-        self.check_row(board,
+        self.check_row(&board,
                 last_move, 
                 CheckRowAxis::Horizontal,
                 player.into())
-            || self.check_row(board, 
+            || self.check_row(&board, 
                 last_move,
                 CheckRowAxis::Vertical,
                 player.into())
-            || self.check_row(board, 
+            || self.check_row(&board, 
                 last_move,
                 CheckRowAxis::DiagonalUp,
                 player.into(),
             )
-            || self.check_row(board, 
+            || self.check_row(&board, 
                 last_move,
                 CheckRowAxis::DiagonalDown,
                 player.into(),
@@ -113,29 +114,17 @@ where
     R: GameStateRepository,
     N: PlayerNotifier,
 {
-    fn start(&self, req: &StartRequest) -> Result<(), ()> {
-        let size = match req.size {
-            Some(size) => size,
-            None => 10,
-        };
+    fn play_turn(&mut self, req: &PlayTurnRequest) -> Result<(), PlayTurnError> {
+        let mut board = self.repo.get_board()
+            .map_err(|e| PlayTurnError::Unknown(anyhow!(e)))?;
 
-        self.repo.init_board(size);
-
-        self.notifier.notify_begin();
-
-        Ok(())
-    }
-
-    fn play_turn(&self, req: &PlayTurnRequest) -> Result<(), ()> {
-        let mut board = self.repo.get_board();
-
-        if board.set_cell(req.position, CellStatus::Black).is_err() {
-            Err(())
+        if let Err(e) = board.set_cell(req.position, CellStatus::Black) {
+            return Err(PlayTurnError::Unknown(anyhow!(e)));
         }
 
         self.repo.register_turn(req.position, CellStatus::Black);
 
-        if self.check_win(req.position, Player::Black) {
+        if self.check_win(&board, req.position, Player::Black) {
             self.notifier.notify_end();
         }
 

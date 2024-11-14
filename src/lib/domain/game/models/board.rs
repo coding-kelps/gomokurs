@@ -1,12 +1,19 @@
+use std::fmt;
 use thiserror::Error;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Copy)]
 pub struct Position {
     pub x: u8,
     pub y: u8,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+impl fmt::Display for Position {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Copy)]
 pub enum CellStatus
 {
     Available,
@@ -14,7 +21,7 @@ pub enum CellStatus
     White,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Board
 {
     pub size: u8,
@@ -35,6 +42,18 @@ pub enum SetCellError {
 
 impl Board
 {
+    pub fn new(
+        size: u8,
+    ) -> Self
+    {
+        Self {
+            size: size,
+            cells: (0..size)
+                .map(|_| vec![CellStatus::Available; size as usize])
+                .collect::<Vec<Vec<CellStatus>>>(),
+        }
+    }
+
     pub fn set_cell(
         &mut self,
         position: Position,
@@ -42,9 +61,9 @@ impl Board
     ) -> Result<(), SetCellError>
     {
         if position.x > self.size || position.y > self.size {
-            Err(SetCellError::OutOfBounds{position, size: self.size})
+            return Err(SetCellError::OutOfBounds{position, size: self.size});
         } else if self.cells[position.x as usize][position.y as usize] != CellStatus::Available {
-            Err(SetCellError::UnavailableCell(position))
+            return Err(SetCellError::UnavailableCell(position));
         }
 
         self.cells[position.x as usize][position.y as usize] = new_status;
@@ -53,7 +72,7 @@ impl Board
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Player {
     Black,
     White,

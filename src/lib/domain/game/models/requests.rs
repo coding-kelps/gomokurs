@@ -1,27 +1,12 @@
 use thiserror::Error;
 use super::{CellStatus, Player, Position};
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct InitBoardRequest {
-    size: Option<u8>,
-}
 
-#[derive(Debug, Error)]
-pub enum InitBoardError {
-    #[error(transparent)]
-    Unknown(#[from] anyhow::Error),
-}
-
-#[derive(Debug, Error)]
-pub enum GetBoardError {
-    #[error(transparent)]
-    Unknown(#[from] anyhow::Error),
-}
-
+// Service's Requests
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PlayTurnRequest {
-    position: Position,
-    player: Player,
+    pub player: Player,
+    pub position: Position,
 }
 
 #[derive(Debug, Error)]
@@ -30,10 +15,19 @@ pub enum PlayTurnError {
     Unknown(#[from] anyhow::Error),
 }
 
+
+
+// Repo's Requests
+#[derive(Debug, Error)]
+pub enum GetBoardError {
+    #[error(transparent)]
+    Unknown(#[from] anyhow::Error),
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RegisterTurnRequest {
-    position: Position,
-    status: CellStatus,
+    pub position: Position,
+    pub status: CellStatus,
 }
 
 #[derive(Debug, Error)]
@@ -42,6 +36,9 @@ pub enum RegisterTurnError {
     Unknown(#[from] anyhow::Error),
 }
 
+
+
+// Notifier's Requests
 #[derive(Debug, Error)]
 pub enum NotifyBeginError {
     #[error(transparent)]

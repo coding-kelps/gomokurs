@@ -1,6 +1,7 @@
 use crate::domain::game::ports::GameService;
 use std::fs::OpenOptions;
 use std::path::Path;
+use std::io;
 use thiserror::Error;
 
 struct AppState<GS: GameService> {
@@ -11,32 +12,33 @@ pub struct NamedPipe {
     path: Path,
 }
 
-#[derive(Error, Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Error)]
 pub enum CreateNamedPipeError {
     #[error("path is unavailable for named pipe creation")]
     UnavailablePath,
+    #[error("error opening pipe for reading")]
+    OpeningPipeError(#[from] io::Error),
 }
 
 impl NamedPipe {
     pub fn new(
         pipe_path: &str,
         game_service: impl GameService,
-    ) -> Result<Self, CreateNamedPipeError> {
+    ) -> Self {
         if !Path::new(pipe_path).exists() {
-            Err(CreateNamedPipeError::UnavailablePath)
+            return Err(CreateNamedPipeError::UnavailablePath);
         }
 
         let pipe = match OpenOptions::new().read(true).open(pipe_path) {
             Ok(p) => p,
             Err(e) => {
-                eprintln!("Error opening pipe for reading: {}", e);
-                return;
+                return Err(CreateNamedPipeError::OpeningPipeError(e));
             }
         };
 
-        Ok(Self {
+        Self {
             path: pipe_path,
-        })
+        }
     }
 }
 
