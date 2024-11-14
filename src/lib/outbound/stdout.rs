@@ -1,4 +1,5 @@
 use crate::domain::game::ports::PlayerNotifier;
+use crate::domain::game::models::{NotifyBeginError, NotifyEndError};
 
 #[derive(Debug, Clone)]
 pub struct Stdout {
@@ -12,13 +13,13 @@ impl Stdout {
 
 impl PlayerNotifier for Stdout {
     fn notify_begin(&self) -> Result<(), NotifyBeginError> {
-        println("White Player Begin");
+        println!("White Player Begin");
 
         Ok(())
     }
 
     fn notify_end(&self) -> Result<(), NotifyEndError> {
-        println("Game Over");
+        println!("Game Over");
 
         Ok(())
     }
