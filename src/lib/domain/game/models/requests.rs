@@ -1,4 +1,5 @@
 use thiserror::Error;
+use super::{CellStatus, Player, Position};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct InitBoardRequest {
@@ -20,6 +21,7 @@ pub enum GetBoardError {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PlayTurnRequest {
     position: Position,
+    player: Player,
 }
 
 #[derive(Debug, Error)]
@@ -28,19 +30,14 @@ pub enum PlayTurnError {
     Unknown(#[from] anyhow::Error),
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct RegisterTurnRequest {
+    position: Position,
+    status: CellStatus,
+}
+
 #[derive(Debug, Error)]
 pub enum RegisterTurnError {
-    #[error(transparent)]
-    Unknown(#[from] anyhow::Error),
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ResetRequest {
-    size: Option<u8>,
-}
-
-#[derive(Debug, Error)]
-pub enum ResetBoardError {
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }

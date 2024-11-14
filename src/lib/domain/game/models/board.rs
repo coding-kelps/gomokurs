@@ -2,8 +2,8 @@ use thiserror::Error;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Position {
-    x: u8,
-    y: u8,
+    pub x: u8,
+    pub y: u8,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -42,12 +42,12 @@ impl Board
     ) -> Result<(), SetCellError>
     {
         if position.x > self.size || position.y > self.size {
-            Err(OutOfBounds{position, size: self.size})
-        } else if self.cells[x as usize][y as usize] != CellStatus::Available {
-            Err(UnavailableCell(position))
+            Err(SetCellError::OutOfBounds{position, size: self.size})
+        } else if self.cells[position.x as usize][position.y as usize] != CellStatus::Available {
+            Err(SetCellError::UnavailableCell(position))
         }
 
-        self.cells[x as usize][y as usize] = new_status;
+        self.cells[position.x as usize][position.y as usize] = new_status;
         
         Ok(())
     }

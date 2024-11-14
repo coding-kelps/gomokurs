@@ -1,4 +1,4 @@
-use crate::domain::game::models::{Turn, InitBoardError, GetBoardError, RegisterTurnError, ResetBoardError};
+use crate::domain::game::models::{CellStatus, GetBoardError, InitBoardError, Position, Board, RegisterTurnError};
 
 pub trait GameStateRepository {
     fn init_board(
@@ -8,14 +8,11 @@ pub trait GameStateRepository {
 
     fn get_board(
         &self,
-    ) -> Result<(), GetBoardError>;
+    ) -> Result<Board, GetBoardError>;
 
     fn register_turn(
-        &self,
-        turn: &Turn,
+        &mut self,
+        position: &Position,
+        status: &CellStatus,
     ) -> Result<(), RegisterTurnError>;
-
-    fn reset_board(
-        &self,
-    ) -> Result<(), ResetBoardError>;
 }
