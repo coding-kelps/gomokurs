@@ -94,6 +94,35 @@ impl Board
     }
 }
 
+impl fmt::Display for Board
+{
+    fn fmt(
+        &self,
+        f: &mut fmt::Formatter,
+    ) -> fmt::Result
+    {
+        let board_as_string: String = self
+            .cells
+            .iter()
+            .map(|col| {
+                col.iter()
+                    .map(|cell| {
+                        match cell {
+                            CellStatus::Available => " ",
+                            CellStatus::Black => "X",
+                            CellStatus::White => "O",
+                        }
+                    })
+                    .collect::<Vec<_>>()
+                    .join("|")
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        writeln!(f, "{}", board_as_string)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Player {
     Black,
