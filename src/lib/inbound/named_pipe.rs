@@ -1,8 +1,13 @@
 use crate::domain::game::ports::GameService;
-use std::fs::OpenOptions;
+use tokio::fs::OpenOptions;
 use std::path::{Path, PathBuf};
 use std::io;
+use tokio::io::{AsyncBufReadExt, BufReader};
 use thiserror::Error;
+use nix::unistd;
+use nix::sys::stat;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 #[allow(dead_code)]
 struct AppState<GS: GameService> {
@@ -11,39 +16,66 @@ struct AppState<GS: GameService> {
 
 pub struct NamedPipe {
     path: PathBuf,
+    stop_signal: Arc<AtomicBool>,
+    _handle: tokio::task::JoinHandle<()>,
 }
 
 #[derive(Debug, Error)]
 pub enum CreateNamedPipeError {
-    #[error("no corresponding pipe at path: `{0}`")]
-    NoPipe(String),
+    #[error("failed to create pipe")]
+    PipeCreationFailedError(#[from] nix::errno::Errno),
     #[error("error opening pipe for reading")]
     OpeningPipeError(#[from] io::Error),
 }
 
 impl NamedPipe {
-    pub fn new(
+    pub async fn new(
         pipe_path: &str,
     ) -> Result<Self, CreateNamedPipeError> {
         if !Path::new(pipe_path).exists() {
-            return Err(CreateNamedPipeError::NoPipe(pipe_path.into()));
+            match unistd::mkfifo(pipe_path, stat::Mode::S_IRWXU) {
+                Ok(_) => {},
+                Err(e) => return Err(e.into()),
+            }
         }
-
-        let _pipe = match OpenOptions::new().read(true).open(pipe_path) {
+        
+        let stop_signal = Arc::new(AtomicBool::new(false));
+        let stop_signal_clone = Arc::clone(&stop_signal);
+        let pipe = match OpenOptions::new().read(true).open(pipe_path).await {
             Ok(p) => p,
             Err(e) => {
-                return Err(CreateNamedPipeError::OpeningPipeError(e));
+                return Err(e.into());
             }
         };
 
+        let handle = tokio::spawn(async move {
+            let reader = BufReader::new(pipe);
+            let mut lines = reader.lines();
+
+            while !stop_signal_clone.load(Ordering::Relaxed) {
+                match lines.next_line().await {
+                    Ok(res) => {
+                        if let Some(line) = res {
+                            println!("received command: {}", line);
+                        }
+                    }
+                    Err(e) => eprintln!("error: {}", e),
+                }
+            }
+        });
+
         Ok(Self {
             path: PathBuf::from(pipe_path),
+            stop_signal: stop_signal,
+            _handle: handle,
         })
     }
 }
 
 impl Drop for NamedPipe {
     fn drop(&mut self) {
+        self.stop_signal.store(true, Ordering::Relaxed);
+
         if self.path.exists() {
             match std::fs::remove_file(self.path.clone()) {
                 Ok(_) => (),
