@@ -1,7 +1,12 @@
 use gomokurs::inbound::NamedPipe;
 
-fn main() {
-    if let Err(e) = NamedPipe::new("./fifo") {
-        eprintln!("error: {}", e)
+#[tokio::main]
+async fn main() {
+    let res = NamedPipe::new("./fifo").await;
+    if let Err(e) = res {
+        eprintln!("error: {}", e);
+    }
+
+    loop {
     }
 }
