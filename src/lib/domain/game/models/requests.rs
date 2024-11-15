@@ -1,5 +1,5 @@
 use thiserror::Error;
-use super::{CellStatus, Player, Position};
+use super::{Player, Position};
 
 
 // Service's Requests
@@ -14,28 +14,6 @@ pub enum PlayTurnError {
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }
-
-
-
-// Repo's Requests
-#[derive(Debug, Error)]
-pub enum GetBoardError {
-    #[error(transparent)]
-    Unknown(#[from] anyhow::Error),
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct RegisterTurnRequest {
-    pub position: Position,
-    pub status: CellStatus,
-}
-
-#[derive(Debug, Error)]
-pub enum RegisterTurnError {
-    #[error(transparent)]
-    Unknown(#[from] anyhow::Error),
-}
-
 
 
 // Notifier's Requests
