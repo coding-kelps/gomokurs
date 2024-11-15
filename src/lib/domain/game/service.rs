@@ -1,32 +1,29 @@
 use crate::domain::game::models::{Position, CellStatus, Board, Player, PlayTurnRequest, PlayTurnError};
-use crate::domain::game::ports::{GameService, GameStateRepository, PlayerNotifier};
+use crate::domain::game::ports::{GameService, PlayerNotifier};
 use anyhow::anyhow;
 
 #[derive(Debug, Clone)]
-pub struct Service<R, N>
+pub struct Service<N>
 where
-    R: GameStateRepository,
     N: PlayerNotifier,
 {
-    repo: R,
     notifier: N,
+    board: Board,
 }
 
-impl<R, N> Service<R, N>
+impl<N> Service<N>
 where
-    R: GameStateRepository,
     N: PlayerNotifier,
 {
-    pub fn new(repo: R, notifier: N) -> Self {
+    pub fn new(notifier: N, size: u8) -> Self {
         Self {
-            repo,
             notifier,
+            board: Board::new(size),
         }
     }
 
     fn check_row(
         &self,
-        board: &Board,
         origin: Position,
         axis: CheckRowAxis,
         status: CellStatus,
@@ -41,11 +38,11 @@ where
                 y: (origin.y as i32 + (axis_vec.1 * i) as i32) as u8,
             };
 
-            if pos.x >= board.size || pos.y >= board.size
+            if pos.x >= self.board.size || pos.y >= self.board.size
             {
                 continue;
             } else {
-                if board.cells[pos.x as usize][pos.y as usize] == status {
+                if self.board.cells[pos.x as usize][pos.y as usize] == status {
                     nb_consecutive += 1;
 
                     if nb_consecutive >= 5 {
@@ -62,26 +59,21 @@ where
 
     fn check_win(
         &self,
-        board: &Board,
         last_move: Position,
         player: Player,
     ) -> bool
     {
-        self.check_row(&board,
-                last_move, 
+        self.check_row(last_move, 
                 CheckRowAxis::Horizontal,
                 player.into())
-            || self.check_row(&board, 
-                last_move,
+            || self.check_row(last_move,
                 CheckRowAxis::Vertical,
                 player.into())
-            || self.check_row(&board, 
-                last_move,
+            || self.check_row(last_move,
                 CheckRowAxis::DiagonalUp,
                 player.into(),
             )
-            || self.check_row(&board, 
-                last_move,
+            || self.check_row(last_move,
                 CheckRowAxis::DiagonalDown,
                 player.into(),
             )
@@ -109,23 +101,16 @@ impl CheckRowAxis
     }
 }
 
-impl<R, N> GameService for Service<R, N>
+impl<N> GameService for Service<N>
 where
-    R: GameStateRepository,
     N: PlayerNotifier,
 {
     fn play_turn(&mut self, req: &PlayTurnRequest) -> Result<(), PlayTurnError> {
-        let mut board = self.repo.get_board()
-            .map_err(|e| PlayTurnError::Unknown(anyhow!(e)))?;
-
-        if let Err(e) = board.set_cell(req.position, CellStatus::Black) {
+        if let Err(e) = self.board.set_cell(req.position, CellStatus::Black) {
             return Err(PlayTurnError::Unknown(anyhow!(e)));
         }
 
-        self.repo.register_turn(req.position, CellStatus::Black)
-            .map_err(|e| PlayTurnError::Unknown(anyhow!(e)))?;
-
-        if self.check_win(&board, req.position, Player::Black) {
+        if self.check_win(req.position, Player::Black) {
             self.notifier.notify_end()
                 .map_err(|e| PlayTurnError::Unknown(anyhow!(e)))?;
         }
