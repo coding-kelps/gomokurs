@@ -1,3 +1,4 @@
+use crate::domain::game::models::Position;
 use crate::domain::game::ports::GameService;
 use tokio::fs::OpenOptions;
 use std::path::{Path, PathBuf};
@@ -8,6 +9,7 @@ use nix::unistd;
 use nix::sys::stat;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use regex::Regex;
 
 #[allow(dead_code)]
 struct AppState<GS: GameService> {
@@ -26,6 +28,37 @@ pub enum CreateNamedPipeError {
     PipeCreationFailedError(#[from] nix::errno::Errno),
     #[error("error opening pipe for reading")]
     OpeningPipeError(#[from] io::Error),
+}
+
+#[derive(Debug, Error)]
+enum ParseCommandError {
+    #[error("failed to regular expression")]
+    RegexCreationError(#[from] regex::Error),
+    #[error("failed to parse number")]
+    NumberParsingError(#[from]  std::num::ParseIntError),
+    #[error("unknown command: `{0}`")]
+    UnknownCommand(String)
+}
+
+async fn parse_command(
+    command: &str,
+) -> Result<(), ParseCommandError> {
+    let re = Regex::new(r"^TURN (\d+),(\d+)$")?;
+
+    match re.captures(command) {
+        Some(caps) => {
+            let position = Position::new(
+                caps[1].parse::<u8>()?,
+                caps[2].parse::<u8>()?);
+
+            // Call GameService::PlayTurn
+
+            println!("Play Turn at position: {}", position);
+        }
+        None => return Err(ParseCommandError::UnknownCommand(command.into())),
+    }
+
+    Ok(())
 }
 
 impl NamedPipe {
@@ -56,7 +89,9 @@ impl NamedPipe {
                 match lines.next_line().await {
                     Ok(res) => {
                         if let Some(line) = res {
-                            println!("received command: {}", line);
+                            if let Err(e) = parse_command(&line).await {
+                                eprintln!("Named Pipe error: {}", e);
+                            }
                         }
                     }
                     Err(e) => eprintln!("error: {}", e),
