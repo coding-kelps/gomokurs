@@ -21,6 +21,28 @@ pub enum CellStatus
     White,
 }
 
+
+pub enum CheckRowAxis
+{
+    Horizontal,
+    Vertical,
+    DiagonalUp,
+    DiagonalDown,
+}
+
+impl CheckRowAxis
+{
+    pub const fn value(&self) -> (i8, i8)
+    {
+        match *self {
+            CheckRowAxis::Horizontal => (1, 0),
+            CheckRowAxis::Vertical => (0, 1),
+            CheckRowAxis::DiagonalUp => (1, -1),
+            CheckRowAxis::DiagonalDown => (1, 1),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Board
 {

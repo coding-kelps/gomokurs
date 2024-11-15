@@ -1,4 +1,4 @@
-use crate::domain::game::models::{Position, CellStatus, Board, Player, PlayTurnRequest, PlayTurnError};
+use crate::domain::game::models::{Position, CellStatus, Board, Player, PlayTurnRequest, PlayTurnError, CheckRowAxis};
 use crate::domain::game::ports::{GameService, PlayerNotifier};
 use anyhow::anyhow;
 
@@ -77,27 +77,6 @@ where
                 CheckRowAxis::DiagonalDown,
                 player.into(),
             )
-    }
-}
-
-enum CheckRowAxis
-{
-    Horizontal,
-    Vertical,
-    DiagonalUp,
-    DiagonalDown,
-}
-
-impl CheckRowAxis
-{
-    const fn value(&self) -> (i8, i8)
-    {
-        match *self {
-            CheckRowAxis::Horizontal => (1, 0),
-            CheckRowAxis::Vertical => (0, 1),
-            CheckRowAxis::DiagonalUp => (1, -1),
-            CheckRowAxis::DiagonalDown => (1, 1),
-        }
     }
 }
 
