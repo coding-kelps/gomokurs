@@ -1,3 +1,3 @@
-pub mod stdout;
+pub mod named_pipe;
 
-pub use stdout::Stdout;
+pub use named_pipe::NamedPipe;
