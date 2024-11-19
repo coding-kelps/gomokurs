@@ -1,25 +1,17 @@
-use crate::domain::game::models::Position;
-use crate::domain::game::ports::GameService;
+use crate::domain::game::ports::PlayerClient;
+use crate::domain::game::models::{RequestStartError, RequestTurnError, RequestBeginError, RequestBoardError, RequestInfoError, RequestEndError, RequestAboutError};
 use tokio::fs::OpenOptions;
+use tokio::process::Command;
 use std::path::{Path, PathBuf};
 use std::io;
-use tokio::io::{AsyncBufReadExt, BufReader};
 use thiserror::Error;
 use nix::unistd;
 use nix::sys::stat;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
-use regex::Regex;
-
-#[allow(dead_code)]
-struct AppState<GS: GameService> {
-    game_service: GS,
-}
+use uuid::Uuid;
 
 pub struct NamedPipe {
-    path: PathBuf,
-    stop_signal: Arc<AtomicBool>,
-    _handle: tokio::task::JoinHandle<()>,
+    fifo_in_path: PathBuf,
+    fifo_out_path: PathBuf,
 }
 
 #[derive(Debug, Error)]
@@ -30,94 +22,93 @@ pub enum CreateNamedPipeError {
     OpeningPipeError(#[from] io::Error),
 }
 
-#[derive(Debug, Error)]
-enum ParseCommandError {
-    #[error("failed to regular expression")]
-    RegexCreationError(#[from] regex::Error),
-    #[error("failed to parse number")]
-    NumberParsingError(#[from]  std::num::ParseIntError),
-    #[error("unknown command: `{0}`")]
-    UnknownCommand(String)
-}
-
-async fn parse_command(
-    command: &str,
-) -> Result<(), ParseCommandError> {
-    let re = Regex::new(r"^TURN (\d+),(\d+)$")?;
-
-    match re.captures(command) {
-        Some(caps) => {
-            let position = Position::new(
-                caps[1].parse::<u8>()?,
-                caps[2].parse::<u8>()?);
-
-            // Call GameService::PlayTurn
-
-            println!("Play Turn at position: {}", position);
-        }
-        None => return Err(ParseCommandError::UnknownCommand(command.into())),
-    }
-
-    Ok(())
-}
-
 impl NamedPipe {
-    pub async fn new(
-        pipe_path: &str,
-    ) -> Result<Self, CreateNamedPipeError> {
-        if !Path::new(pipe_path).exists() {
-            match unistd::mkfifo(pipe_path, stat::Mode::S_IRWXU) {
+    pub async fn new(binary: &Path) -> Result<Self, CreateNamedPipeError> {
+        let uuid = Uuid::new_v4().to_string();
+        let tmp_dir = format!("/tmp/gomokurs/{}/", uuid);
+        let fifo_in_path = PathBuf::from(format!("{}/in", &tmp_dir));
+        let fifo_out_path = PathBuf::from(format!("{}/out", &tmp_dir));
+
+        for &fifo in &[&fifo_in_path, &fifo_out_path] {
+            match unistd::mkfifo(fifo, stat::Mode::S_IRWXU) {
                 Ok(_) => {},
                 Err(e) => return Err(e.into()),
             }
         }
-        
-        let stop_signal = Arc::new(AtomicBool::new(false));
-        let stop_signal_clone = Arc::clone(&stop_signal);
-        let pipe = match OpenOptions::new().read(true).open(pipe_path).await {
-            Ok(p) => p,
-            Err(e) => {
-                return Err(e.into());
-            }
-        };
 
-        let handle = tokio::spawn(async move {
-            let reader = BufReader::new(pipe);
-            let mut lines = reader.lines();
+        let fifo_in = OpenOptions::new().read(true).open(&fifo_in_path).await?.into_std().await;
+        let fifo_out = OpenOptions::new().write(true).open(&fifo_out_path).await?.into_std().await;
 
-            while !stop_signal_clone.load(Ordering::Relaxed) {
-                match lines.next_line().await {
-                    Ok(res) => {
-                        if let Some(line) = res {
-                            if let Err(e) = parse_command(&line).await {
-                                eprintln!("Named Pipe error: {}", e);
-                            }
-                        }
-                    }
-                    Err(e) => eprintln!("error: {}", e),
-                }
-            }
-        });
+        let _ = Command::new(binary)
+            .stdin(fifo_in)
+            .stdout(fifo_out)
+            .spawn()?;
 
         Ok(Self {
-            path: PathBuf::from(pipe_path),
-            stop_signal: stop_signal,
-            _handle: handle,
+            fifo_in_path,
+            fifo_out_path,
         })
+    }
+}
+
+impl PlayerClient for NamedPipe {
+    fn request_start(
+        &self,
+    ) -> Result<(), RequestStartError>
+    {
+        Ok(())
+    }
+
+    fn request_turn(
+        &self,
+    ) -> Result<(), RequestTurnError>
+    {
+        Ok(())
+    }
+
+    fn request_begin(
+        &self,
+    ) -> Result<(), RequestBeginError>
+    {
+        Ok(())
+    }
+
+    fn request_board(
+        &self,
+    ) -> Result<(), RequestBoardError>
+    {
+        Ok(())
+    }
+
+    fn request_info(
+        &self,
+    ) -> Result<(), RequestInfoError>
+    {
+        Ok(())
+    }
+
+    fn request_end(
+        &self,
+    ) -> Result<(), RequestEndError>
+    {
+        Ok(())
+    }
+
+    fn request_about    (
+        &self,
+    ) -> Result<(), RequestAboutError>
+    {
+        Ok(())
     }
 }
 
 impl Drop for NamedPipe {
     fn drop(&mut self) {
-        self.stop_signal.store(true, Ordering::Relaxed);
-
-        if self.path.exists() {
-            match std::fs::remove_file(self.path.clone()) {
+        for &fifo in &[&self.fifo_in_path, &self.fifo_out_path] {
+            match std::fs::remove_file(fifo) {
                 Ok(_) => (),
                 Err(e) => eprintln!("Error removing named pipe: {}", e),
             }
-        } else {
-            println!("Named pipe does not exist or was already removed.");
         }
     }
 }

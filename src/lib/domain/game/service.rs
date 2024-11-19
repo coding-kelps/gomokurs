@@ -1,23 +1,25 @@
 use crate::domain::game::models::{Position, CellStatus, Board, Player, PlayTurnRequest, PlayTurnError, CheckRowAxis};
-use crate::domain::game::ports::{GameService, PlayerNotifier};
+use crate::domain::game::ports::{GameService, PlayerClient};
 use anyhow::anyhow;
 
 #[derive(Debug, Clone)]
-pub struct Service<N>
+pub struct Service<C>
 where
-    N: PlayerNotifier,
+    C: PlayerClient,
 {
-    notifier: N,
+    white_player: C,
+    black_player: C,
     board: Board,
 }
 
-impl<N> Service<N>
+impl<C> Service<C>
 where
-    N: PlayerNotifier,
+    C: PlayerClient,
 {
-    pub fn new(notifier: N, size: u8) -> Self {
+    pub fn new(white_player: C, black_player: C, size: u8) -> Self {
         Self {
-            notifier,
+            white_player,
+            black_player,
             board: Board::new(size),
         }
     }
@@ -80,9 +82,9 @@ where
     }
 }
 
-impl<N> GameService for Service<N>
+impl<C> GameService for Service<C>
 where
-    N: PlayerNotifier,
+    C: PlayerClient,
 {
     fn play_turn(&mut self, req: &PlayTurnRequest) -> Result<(), PlayTurnError> {
         if let Err(e) = self.board.set_cell(req.position, CellStatus::Black) {
@@ -90,7 +92,7 @@ where
         }
 
         if self.check_win(req.position, Player::Black) {
-            self.notifier.notify_end()
+            self.white_player.request_end()
                 .map_err(|e| PlayTurnError::Unknown(anyhow!(e)))?;
         }
 
