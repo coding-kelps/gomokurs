@@ -1,10 +1,13 @@
 use crate::domain::game::ports::PlayerClient;
-use crate::domain::game::models::{RequestStartError, RequestTurnError, RequestBeginError, RequestBoardError, RequestInfoError, RequestEndError, RequestAboutError};
+use crate::domain::game::models::{Position, RequestStartError, RequestTurnError, RequestBeginError, RequestBoardError, RequestInfoError, RequestEndError, RequestAboutError};
 use tokio::process::{Command, Child, ChildStdin, ChildStdout};
-use tokio::io::{AsyncBufReadExt, BufReader, Lines, BufWriter};
+use tokio::io::{AsyncBufReadExt, BufReader, Lines, AsyncWriteExt, BufWriter};
+use std::num::ParseIntError;
 use std::process::Stdio;
 use std::path::Path;
 use thiserror::Error;
+use regex::Regex;
+use anyhow::anyhow;
 
 pub struct NamedPipe {
     _child: Child,
@@ -40,53 +43,106 @@ impl NamedPipe {
     }
 }
 
+#[derive(Debug, Error)]
+enum ParsePlayerMoveError {
+    #[error("regular expression failed to compile")]
+    InvalidRegex(#[from] regex::Error),
+    #[error("player move format is invalid")]
+    InvalidFormat,
+    #[error("move's coordinates are invalid: `{0}`")]
+    InvalidCoordinates(#[from] ParseIntError),
+}
+
+fn parse_player_move(
+    res: &str
+) -> Result<Position, ParsePlayerMoveError> {
+    let re = Regex::new(r"^(\d+),(\d+)$")?;
+
+    match re.captures(res) {
+        Some(caps) => {
+            let x = caps[1].parse::<u8>()?;
+            let y = caps[2].parse::<u8>()?;
+
+            Ok(Position::new(x, y))
+        }
+        None => Err(ParsePlayerMoveError::InvalidFormat),
+    }
+}
+
 impl PlayerClient for NamedPipe {
-    fn request_start(
-        &self,
+    async fn request_start(
+        &mut self,
+        size: u8,
     ) -> Result<(), RequestStartError>
     {
         Ok(())
     }
 
-    fn request_turn(
-        &self,
-    ) -> Result<(), RequestTurnError>
+    async fn request_turn(
+        &mut self,
+        position: Position,
+    ) -> Result<Position, RequestTurnError>
     {
-        Ok(())
+        Ok(Position::new(0, 0))
     }
 
-    fn request_begin(
-        &self,
-    ) -> Result<(), RequestBeginError>
+    async fn request_begin(
+        &mut self,
+    ) -> Result<Position, RequestBeginError>
     {
-        Ok(())
+        self.writer
+            .write_all(b"BEGIN\n")
+            .await
+            .map_err(|e| RequestBeginError::Unknown(anyhow!(e)))?;
+
+        self.writer
+            .flush()
+            .await
+            .map_err(|e| RequestBeginError::Unknown(anyhow!(e)))?;
+
+        let line = self.reader.next_line()
+            .await
+            .map_err(|e| RequestBeginError::Unknown(anyhow!(e)))?
+            .expect("self.reader.next_line() results is None");
+
+        match parse_player_move(&line) {
+            Ok(p) => {
+                return Ok(p)
+            },
+            Err(e) => Err(RequestBeginError::Unknown(e.into())),
+        }
     }
 
-    fn request_board(
-        &self,
+    async fn request_board(
+        &mut self,
+        positions: Vec<Position>,
     ) -> Result<(), RequestBoardError>
     {
         Ok(())
     }
 
-    fn request_info(
-        &self,
+    async fn request_info(
+        &mut self,
     ) -> Result<(), RequestInfoError>
     {
         Ok(())
     }
 
-    fn request_end(
-        &self,
+    async fn request_end(
+        &mut self,
     ) -> Result<(), RequestEndError>
     {
+        let _ = self.writer.write_all(b"END");
+
         Ok(())
     }
 
-    fn request_about    (
-        &self,
+    async fn request_about    (
+        &mut self,
     ) -> Result<(), RequestAboutError>
     {
+        let _ = self.writer.write_all(b"ABOUT");
+
         Ok(())
     }
 }

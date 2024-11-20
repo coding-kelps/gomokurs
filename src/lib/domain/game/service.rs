@@ -2,6 +2,8 @@ use crate::domain::game::models::{Position, CellStatus, Board, Player, PlayTurnR
 use crate::domain::game::ports::{GameService, PlayerClient};
 use anyhow::anyhow;
 
+use super::models::RequestEndError;
+
 #[derive(Debug, Clone)]
 pub struct Service<C>
 where
@@ -86,14 +88,15 @@ impl<C> GameService for Service<C>
 where
     C: PlayerClient,
 {
-    fn play_turn(&mut self, req: &PlayTurnRequest) -> Result<(), PlayTurnError> {
+    async fn play_turn(&mut self, req: &PlayTurnRequest) -> Result<(), PlayTurnError> {
         if let Err(e) = self.board.set_cell(req.position, CellStatus::Black) {
             return Err(PlayTurnError::Unknown(anyhow!(e)));
         }
 
         if self.check_win(req.position, Player::Black) {
             self.white_player.request_end()
-                .map_err(|e| PlayTurnError::Unknown(anyhow!(e)))?;
+                .await
+                .map_err(|e: RequestEndError| PlayTurnError::Unknown(anyhow!(e)))?;
         }
 
         Ok(())
