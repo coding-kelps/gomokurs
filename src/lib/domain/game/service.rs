@@ -8,7 +8,7 @@ where
     C: PlayerClient,
 {
     white_player: C,
-    black_player: C,
+    _black_player: C,
     board: Board,
 }
 
@@ -19,7 +19,7 @@ where
     pub fn new(white_player: C, black_player: C, size: u8) -> Self {
         Self {
             white_player,
-            black_player,
+            _black_player: black_player,
             board: Board::new(size),
         }
     }

@@ -1,52 +1,41 @@
 use crate::domain::game::ports::PlayerClient;
 use crate::domain::game::models::{RequestStartError, RequestTurnError, RequestBeginError, RequestBoardError, RequestInfoError, RequestEndError, RequestAboutError};
-use tokio::fs::OpenOptions;
-use tokio::process::Command;
-use std::path::{Path, PathBuf};
-use std::io;
+use tokio::process::{Command, Child, ChildStdin, ChildStdout};
+use tokio::io::{AsyncBufReadExt, BufReader, Lines, BufWriter};
+use std::process::Stdio;
+use std::path::Path;
 use thiserror::Error;
-use nix::unistd;
-use nix::sys::stat;
-use uuid::Uuid;
 
 pub struct NamedPipe {
-    fifo_in_path: PathBuf,
-    fifo_out_path: PathBuf,
+    _child: Child,
+    pub reader: Lines<BufReader<ChildStdout>>,
+    pub writer: BufWriter<ChildStdin>,
 }
 
 #[derive(Debug, Error)]
 pub enum CreateNamedPipeError {
-    #[error("failed to create pipe")]
-    PipeCreationFailedError(#[from] nix::errno::Errno),
-    #[error("error opening pipe for reading")]
-    OpeningPipeError(#[from] io::Error),
+    #[error("create subprocess error: `{0}`")]
+    CreateSubprocessError(#[from] tokio::io::Error),
 }
 
 impl NamedPipe {
     pub async fn new(binary: &Path) -> Result<Self, CreateNamedPipeError> {
-        let uuid = Uuid::new_v4().to_string();
-        let tmp_dir = format!("/tmp/gomokurs/{}/", uuid);
-        let fifo_in_path = PathBuf::from(format!("{}/in", &tmp_dir));
-        let fifo_out_path = PathBuf::from(format!("{}/out", &tmp_dir));
-
-        for &fifo in &[&fifo_in_path, &fifo_out_path] {
-            match unistd::mkfifo(fifo, stat::Mode::S_IRWXU) {
-                Ok(_) => {},
-                Err(e) => return Err(e.into()),
-            }
-        }
-
-        let fifo_in = OpenOptions::new().read(true).open(&fifo_in_path).await?.into_std().await;
-        let fifo_out = OpenOptions::new().write(true).open(&fifo_out_path).await?.into_std().await;
-
-        let _ = Command::new(binary)
-            .stdin(fifo_in)
-            .stdout(fifo_out)
+        let mut child = Command::new(binary)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .kill_on_drop(true)
             .spawn()?;
 
+        let stdout = child.stdout.take().expect("");
+        let stdin = child.stdin.take().expect("");
+
+        let reader = BufReader::new(stdout).lines();
+        let writer = BufWriter::new(stdin);
+        
         Ok(Self {
-            fifo_in_path,
-            fifo_out_path,
+            _child: child,
+            reader,
+            writer,
         })
     }
 }
@@ -99,16 +88,5 @@ impl PlayerClient for NamedPipe {
     ) -> Result<(), RequestAboutError>
     {
         Ok(())
-    }
-}
-
-impl Drop for NamedPipe {
-    fn drop(&mut self) {
-        for &fifo in &[&self.fifo_in_path, &self.fifo_out_path] {
-            match std::fs::remove_file(fifo) {
-                Ok(_) => (),
-                Err(e) => eprintln!("Error removing named pipe: {}", e),
-            }
-        }
     }
 }
