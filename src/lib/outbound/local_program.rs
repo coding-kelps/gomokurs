@@ -9,20 +9,20 @@ use thiserror::Error;
 use regex::Regex;
 use anyhow::anyhow;
 
-pub struct NamedPipe {
+pub struct LocalProgram {
     _child: Child,
     pub reader: Lines<BufReader<ChildStdout>>,
     pub writer: BufWriter<ChildStdin>,
 }
 
 #[derive(Debug, Error)]
-pub enum CreateNamedPipeError {
+pub enum CreateLocalProgramError {
     #[error("create subprocess error: `{0}`")]
     CreateSubprocessError(#[from] tokio::io::Error),
 }
 
-impl NamedPipe {
-    pub async fn new(binary: &Path) -> Result<Self, CreateNamedPipeError> {
+impl LocalProgram {
+    pub async fn new(binary: &Path) -> Result<Self, CreateLocalProgramError> {
         let mut child = Command::new(binary)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
@@ -69,7 +69,7 @@ fn parse_player_move(
     }
 }
 
-impl PlayerClient for NamedPipe {
+impl PlayerClient for LocalProgram {
     async fn request_start(
         &mut self,
         size: u8,
