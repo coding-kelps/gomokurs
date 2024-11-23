@@ -75,6 +75,16 @@ impl PlayerClient for LocalProgram {
         size: u8,
     ) -> Result<(), RequestStartError>
     {
+        self.writer
+            .write_all(format!("START {}\n", size).as_bytes())
+            .await
+            .map_err(|e| RequestStartError::Unknown(anyhow!(e)))?;
+
+        self.writer
+            .flush()
+            .await
+            .map_err(|e| RequestStartError::Unknown(anyhow!(e)))?;
+
         Ok(())
     }
 
