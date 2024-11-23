@@ -1,3 +1,3 @@
-pub mod named_pipe;
+pub mod local_program;
 
-pub use named_pipe::NamedPipe;
+pub use local_program::LocalProgram;
