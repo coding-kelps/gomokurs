@@ -1,22 +1,19 @@
-use gomokurs::{domain::game::ports::PlayerClient, outbound::LocalProgram};
+use gomokurs::{domain::game::Service, outbound::LocalProgram};
 use std::path::Path;
 
 #[tokio::main]
 async fn main() {
     let binary = Path::new("./.debug/gomocku");
 
-    let mut local = match LocalProgram::new(binary).await {
+    let local1 = match LocalProgram::new(binary).await {
         Ok(l) => l,
         Err(e) => return eprintln!("{}", e),
     };
 
-    match local.request_start(20).await {
-        Ok(_) => (),
-        Err(e) => eprintln!("error {}", e),
-    }
+    let local2 = match LocalProgram::new(binary).await {
+        Ok(l) => l,
+        Err(e) => return eprintln!("{}", e),
+    };
 
-    match local.request_begin().await {
-        Ok(p) => println!("player position: {}", p),
-        Err(e) => eprintln!("error {}", e),
-    }
+    Service::new(local1, local2, 20);
 }
