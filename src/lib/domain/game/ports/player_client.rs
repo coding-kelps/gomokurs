@@ -1,4 +1,4 @@
-use crate::domain::game::models::{Position, RequestStartError, RequestTurnError, RequestBeginError, RequestBoardError, RequestInfoError, RequestEndError, RequestAboutError};
+use crate::domain::game::models::{Information, PlayerInformations, Position, RelativeTurn, RequestAboutError, RequestBeginError, RequestBoardError, RequestEndError, RequestInfoError, RequestStartError, RequestTurnError};
 
 pub trait PlayerClient {
     async fn request_start(
@@ -17,11 +17,12 @@ pub trait PlayerClient {
 
     async fn request_board(
         &mut self,
-        positions: Vec<Position>,
-    ) -> Result<(), RequestBoardError>;
+        turns: Vec<RelativeTurn>,
+    ) -> Result<Position, RequestBoardError>;
 
     async fn request_info(
         &mut self,
+        info: Information,
     ) -> Result<(), RequestInfoError>;
 
     async fn request_end(
@@ -30,5 +31,5 @@ pub trait PlayerClient {
 
     async fn request_about(
         &mut self,
-    ) -> Result<(), RequestAboutError>;
+    ) -> Result<PlayerInformations, RequestAboutError>;
 }
