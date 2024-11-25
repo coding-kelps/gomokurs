@@ -134,7 +134,7 @@ impl fmt::Display for Board
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Player {
     Black,
     White,
@@ -142,12 +142,11 @@ pub enum Player {
 
 impl Player
 {
-    #[allow(dead_code)]
-    fn switch(&self) -> Player
+    pub fn switch(&self) -> Player
     {
         match self {
-            Player::White => Player::Black,
             Player::Black => Player::White,
+            Player::White => Player::Black,
         }
     }
 }
@@ -163,10 +162,22 @@ impl Into<CellStatus> for Player
     }
 }
 
+impl fmt::Display for Player
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self {
+            Player::Black =>  write!(f, "black player"),
+            Player::White => write!(f, "white player"),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct PlayerInformations {
     pub info: HashMap<String, String>,
 }
 
+#[derive(Debug, Clone)]
 pub enum Information {
     TimeoutTurn(u64),
     TimeoutMatch(u64),
@@ -203,6 +214,7 @@ impl fmt::Display for Information {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum RelativeField {
     OwnStone,
     OpponentStone,
@@ -218,6 +230,7 @@ impl fmt::Display for RelativeField {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct RelativeTurn {
     pub position: Position,
     pub field: RelativeField,
@@ -228,4 +241,16 @@ impl fmt::Display for RelativeTurn {
 
         write!(f, "{},{}", self.position,self.field)
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct Turn {
+    pub position: Position,
+    pub player: Player,
+}
+
+#[derive(Debug, Clone)]
+pub enum GameEnd {
+    Win(Player),
+    Draw,
 }
