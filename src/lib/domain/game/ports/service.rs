@@ -1,5 +1,5 @@
-use crate::domain::game::models::{PlayTurnRequest, PlayTurnError};
+use crate::domain::game::models::{GameEnd, PlayError, PlayRequest};
 
 pub trait GameService {
-    async fn play_turn(&mut self, req: &PlayTurnRequest) -> Result<(), PlayTurnError>;
+    async fn play(&mut self, _req: &PlayRequest) -> Result<GameEnd, PlayError>;
 }

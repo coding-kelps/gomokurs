@@ -1,16 +1,12 @@
 use thiserror::Error;
-use super::{Player, Position};
-
 
 // Service's Requests
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct PlayTurnRequest {
-    pub player: Player,
-    pub position: Position,
+pub struct PlayRequest {
 }
 
 #[derive(Debug, Error)]
-pub enum PlayTurnError {
+pub enum PlayError {
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }

@@ -104,7 +104,7 @@ impl PlayerClient for LocalProgram {
         let line = self.reader.next_line()
             .await
             .map_err(|e| RequestBeginError::Unknown(anyhow!(e)))?
-            .expect("self.reader.next_line() results is None");
+            .unwrap();
 
         match parse_position(&line) {
             Ok(p) => {
