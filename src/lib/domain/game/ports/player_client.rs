@@ -1,35 +1,35 @@
 use crate::domain::game::models::{Information, PlayerInformations, Position, RelativeTurn, RequestAboutError, RequestBeginError, RequestBoardError, RequestEndError, RequestInfoError, RequestStartError, RequestTurnError};
 
 pub trait PlayerClient {
-    async fn request_start(
+    fn request_start(
         &mut self,
         size: u8,
-    ) -> Result<(), RequestStartError>;
+    ) -> impl std::future::Future<Output = Result<(), RequestStartError>> + Send;
 
-    async fn request_turn(
+    fn request_turn(
         &mut self,
         position: Position,
-    ) -> Result<Position, RequestTurnError>;
+    ) -> impl std::future::Future<Output = Result<Position, RequestTurnError>> + Send;
     
-    async fn request_begin(
+    fn request_begin(
         &mut self,
-    ) -> Result<Position, RequestBeginError>;
+    ) -> impl std::future::Future<Output = Result<Position, RequestBeginError>>;
 
-    async fn request_board(
+    fn request_board(
         &mut self,
         turns: Vec<RelativeTurn>,
-    ) -> Result<Position, RequestBoardError>;
+    ) -> impl std::future::Future<Output = Result<Position, RequestBoardError>>;
 
-    async fn request_info(
+    fn request_info(
         &mut self,
         info: Information,
-    ) -> Result<(), RequestInfoError>;
+    ) -> impl std::future::Future<Output = Result<(), RequestInfoError>>;
 
-    async fn request_end(
+    fn request_end(
         &mut self,
-    ) -> Result<(), RequestEndError>;
+    ) -> impl std::future::Future<Output = Result<(), RequestEndError>>;
 
-    async fn request_about(
+    fn request_about(
         &mut self,
-    ) -> Result<PlayerInformations, RequestAboutError>;
+    ) -> impl std::future::Future<Output = Result<PlayerInformations, RequestAboutError>>;
 }
