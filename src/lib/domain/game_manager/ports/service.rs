@@ -1,4 +1,4 @@
-use crate::domain::game::models::{GameEnd, PlayError, PlayRequest};
+use crate::domain::game_manager::models::{GameEnd, PlayError, PlayRequest};
 
 pub trait GameService {
     fn play(

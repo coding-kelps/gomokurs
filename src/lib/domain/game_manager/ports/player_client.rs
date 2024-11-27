@@ -1,4 +1,4 @@
-use crate::domain::game::models::*;
+use crate::domain::game_manager::models::*;
 
 pub trait PlayerClient {
     fn request_start(

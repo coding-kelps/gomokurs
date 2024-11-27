@@ -1,5 +1,5 @@
-use crate::domain::game::ports::PlayerClient;
-use crate::domain::game::models::{Information, PlayerInformations, Position, RelativeTurn, RequestAboutError, RequestBeginError, RequestBoardError, RequestEndError, RequestInfoError, RequestStartError, RequestTurnError};
+use crate::domain::game_manager::ports::PlayerClient;
+use crate::domain::game_manager::models::*;
 use tokio::process::{Command, Child, ChildStdin, ChildStdout};
 use tokio::io::{AsyncBufReadExt, BufReader, Lines, AsyncWriteExt, BufWriter};
 use std::process::Stdio;
