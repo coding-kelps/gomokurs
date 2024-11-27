@@ -1,4 +1,4 @@
-use gomokurs::{domain::game::{models::{GameEnd, PlayRequest}, ports::GameService, Service}, outbound::LocalProgram};
+use gomokurs::{domain::game_manager::{models::{GameEnd, PlayRequest}, ports::GameService, Service}, outbound::LocalProgram};
 use std::path::Path;
 
 #[tokio::main]

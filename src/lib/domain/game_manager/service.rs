@@ -1,5 +1,5 @@
-use crate::domain::game::models::*;
-use crate::domain::game::ports::{GameService, PlayerClient};
+use crate::domain::game_manager::models::*;
+use crate::domain::game_manager::ports::{GameService, PlayerClient};
 use anyhow::anyhow;
 
 #[derive(Debug, Clone)]
