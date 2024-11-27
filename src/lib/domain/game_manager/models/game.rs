@@ -1,7 +1,7 @@
 use std::fmt;
 use std::collections::HashMap;
 use std::path::PathBuf;
-use crate::domain::game::models::board::*;
+use crate::domain::game_manager::models::board::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Player {
