@@ -1,4 +1,4 @@
-use crate::domain::game::models::{Information, PlayerInformations, Position, RelativeTurn, RequestAboutError, RequestBeginError, RequestBoardError, RequestEndError, RequestInfoError, RequestStartError, RequestTurnError};
+use crate::domain::game::models::*;
 
 pub trait PlayerClient {
     fn request_start(
