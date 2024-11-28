@@ -10,8 +10,8 @@ pub struct Position {
 impl Position {
     pub fn new(x: u8, y: u8) -> Self {
         Self {
-            x,
-            y
+            x: x,
+            y: y
         }
     }
 }
@@ -100,6 +100,63 @@ impl Board
         self.cells[position.x as usize][position.y as usize] = new_status;
         
         Ok(())
+    }
+
+    fn check_row(
+        &self,
+        origin: Position,
+        axis: CheckRowAxis,
+        status: CellStatus,
+    ) -> bool
+    {
+        let mut nb_consecutive = 0u8;
+
+        for i in -5..5 {
+            let axis_vec = axis.value();
+            let pos = Position {
+                x: (origin.x as i32 + (axis_vec.0 * i) as i32) as u8,
+                y: (origin.y as i32 + (axis_vec.1 * i) as i32) as u8,
+            };
+
+            if pos.x >= self.size || pos.y >= self.size
+            {
+                continue;
+            } else {
+                if self.cells[pos.x as usize][pos.y as usize] == status {
+                    nb_consecutive += 1;
+
+                    if nb_consecutive >= 5 {
+                        return true;
+                    }
+                } else {
+                    nb_consecutive = 0;
+                }
+            }
+        }
+
+        false
+    }
+
+    pub fn check_win(
+        &self,
+        last_move: Position,
+        player: CellStatus,
+    ) -> bool
+    {
+        self.check_row(last_move, 
+                CheckRowAxis::Horizontal,
+                player.into())
+            || self.check_row(last_move,
+                CheckRowAxis::Vertical,
+                player.into())
+            || self.check_row(last_move,
+                CheckRowAxis::DiagonalUp,
+                player.into(),
+            )
+            || self.check_row(last_move,
+                CheckRowAxis::DiagonalDown,
+                player.into(),
+            )
     }
 }
 
