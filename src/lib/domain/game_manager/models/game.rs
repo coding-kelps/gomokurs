@@ -2,6 +2,85 @@ use std::fmt;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use crate::domain::game_manager::models::board::*;
+use crate::domain::game_manager::models::requests::*;
+use crate::domain::game_manager::ports::PlayerClient;
+use thiserror::Error;
+use uuid::Uuid;
+use anyhow::anyhow;
+
+#[derive(Debug, Clone)]
+pub struct Game<C>
+where
+    C: PlayerClient
+{
+    pub uuid: Uuid,
+    black_player: C,
+    white_player: C,
+    board: Board,
+    player_turn: Player,
+    _turn_history: Vec<Turn>,
+}
+
+impl<C> Game<C>
+where
+    C: PlayerClient
+{
+    pub fn new(
+        black_player: C,
+        white_player: C,
+        size: u8,
+    ) -> Self {
+        Self {
+            uuid: Uuid::new_v4(),
+            black_player: black_player,
+            white_player: white_player,
+            board: Board::new(size),
+            player_turn: Player::Black,
+            _turn_history: vec![],
+        }
+    }
+
+    pub async fn play(
+        &mut self,
+    ) -> Result<GameEnd, PlayError> {
+        let mut last_move = self.black_player.request_begin().await
+            .map_err(|e: RequestBeginError| PlayError::Unknown(anyhow!(e)))?;
+
+        self.board.set_cell(last_move, CellStatus::Black)
+            .map_err(|e: SetCellError| PlayError::Unknown(anyhow!(e)))?;
+
+        for _ in 1..(self.board.size as u32).pow(2) {
+            self.player_turn = self.player_turn.switch();
+            let client = match self.player_turn {
+                Player::Black => &mut self.black_player,
+                Player::White => &mut self.white_player,
+            };
+            last_move = client.request_turn(last_move).await
+                .map_err(|e: RequestTurnError| PlayError::Unknown(anyhow!(e)))?;
+
+            self.board.set_cell(last_move, self.player_turn.into())
+                .map_err(|e: SetCellError| PlayError::Unknown(anyhow!(e)))?;
+
+            if self.board.check_win(last_move, self.player_turn.into()) {
+                for c in [& mut self.black_player, & mut self.white_player] {
+                    c.request_end()
+                        .await
+                        .map_err(|e: RequestEndError| PlayError::Unknown(anyhow!(e)))?;
+                }
+
+                return Ok(GameEnd::Win(self.player_turn))
+            }
+        }
+
+        Ok(GameEnd::Draw)
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum PlayError {
+    #[error(transparent)]
+    Unknown(#[from] anyhow::Error),
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Player {

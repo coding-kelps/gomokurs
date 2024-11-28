@@ -1,17 +1,5 @@
 use thiserror::Error;
 
-// Service's Requests
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct PlayRequest {
-}
-
-#[derive(Debug, Error)]
-pub enum PlayError {
-    #[error(transparent)]
-    Unknown(#[from] anyhow::Error),
-}
-
-
 // Player Client's Requests
 #[derive(Debug, Error)]
 pub enum RequestStartError {
