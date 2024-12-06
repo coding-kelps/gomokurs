@@ -1,6 +1,6 @@
 use crate::adapters::local::local::Local;
-use crate::domain::game_manager::models::*;
-use crate::domain::game_manager::ports::PlayerNotifier;
+use crate::domain::game::models::*;
+use crate::domain::game::ports::PlayerNotifier;
 use tokio::io::AsyncWriteExt;
 use anyhow::anyhow;
 
