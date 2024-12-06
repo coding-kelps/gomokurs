@@ -1,11 +1,13 @@
-use crate::domain::game::models::GameEnd;
+use crate::domain::game::models::*;
 use crate::domain::game::ports::PlayerNotifier;
 
 pub trait GameService<N>
 where
     N: PlayerNotifier
 {
-    fn play(
+    fn handle_player_action(
         &mut self,
-    ) -> impl std::future::Future<Output = Result<GameEnd, ()>>;
+        action: PlayerAction,
+        player: PlayerColor,
+    ) -> impl std::future::Future<Output = Result<Option<GameEnd>, PlayError>>;
 }

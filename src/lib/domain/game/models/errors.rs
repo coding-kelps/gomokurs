@@ -1,5 +1,12 @@
 use thiserror::Error;
 
+// Service's errors
+#[derive(Debug, Error)]
+pub enum PlayError {
+    #[error(transparent)]
+    Unknown(#[from] anyhow::Error),
+}
+
 // PlayerListener's errors
 #[derive(Debug, Error)]
 pub enum ListenActionError {
@@ -48,6 +55,18 @@ pub enum NotifyEndError {
 
 #[derive(Debug, Error)]
 pub enum NotifyAboutError {
+    #[error(transparent)]
+    Unknown(#[from] anyhow::Error),
+}
+
+#[derive(Debug, Error)]
+pub enum NotifyUnknownError {
+    #[error(transparent)]
+    Unknown(#[from] anyhow::Error),
+}
+
+#[derive(Debug, Error)]
+pub enum NotifyErrorError {
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }

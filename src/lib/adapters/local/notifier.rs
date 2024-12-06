@@ -113,4 +113,24 @@ impl PlayerNotifier for Local {
 
         Ok(())
     }
+
+    async fn notify_unknown(
+        &mut self,
+        content: &str,
+    ) -> Result<(), NotifyAboutError>
+    {
+        let _ = self.writer.write_all(format!("UNKNOWN {}", content).as_bytes());
+
+        Ok(())
+    }
+
+    async fn notify_error(
+        &mut self,
+        content: &str,
+    ) -> Result<(), NotifyAboutError>
+    {
+        let _ = self.writer.write_all(format!("ERROR {}", content).as_bytes());
+
+        Ok(())
+    }
 }

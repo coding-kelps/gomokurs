@@ -3,107 +3,49 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::path::PathBuf;
 use crate::domain::game::models::board::*;
-use crate::domain::game::models::errors::*;
-use crate::domain::game::ports::PlayerNotifier;
-use thiserror::Error;
-use uuid::Uuid;
-use anyhow::anyhow;
-
-#[derive(Debug, Clone)]
-pub struct Game<N>
-where
-    N: PlayerNotifier
-{
-    pub uuid: Uuid,
-    black_player: N,
-    white_player: N,
-    board: Board,
-    turn_player: Player,
-    _turn_history: Vec<Turn>,
-}
-
-impl<N> Game<N>
-where
-    N: PlayerNotifier
-{
-    pub fn new(
-        black_player: N,
-        white_player: N,
-        size: u8,
-    ) -> Self {
-        Self {
-            uuid: Uuid::new_v4(),
-            black_player: black_player,
-            white_player: white_player,
-            board: Board::new(size),
-            turn_player: Player::Black,
-            _turn_history: vec![],
-        }
-    }
-
-    pub async fn play_turn(
-        &mut self,
-        turn: Turn,
-    ) -> Result<GameEnd, PlayError> {
-        self.board.set_cell(turn.position, turn.player.into())
-            .map_err(|e: SetCellError| PlayError::Unknown(anyhow!(e)))?;
-
-        if self.board.check_win(turn.position, turn.player.into()) {
-            for n in [& mut self.black_player, & mut self.white_player] {
-                n.notify_end()
-                    .await
-                    .map_err(|e: NotifyEndError| PlayError::Unknown(anyhow!(e)))?;
-            }
-
-            return Ok(GameEnd::Win(self.turn_player))
-        }
-
-        self.turn_player = self.turn_player.switch();
-
-        Ok(GameEnd::Draw)
-    }
-}
-
-#[derive(Debug, Error)]
-pub enum PlayError {
-    #[error(transparent)]
-    Unknown(#[from] anyhow::Error),
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Player {
+pub enum PlayerColor {
     Black,
     White,
 }
 
-impl Player
+impl PlayerColor
 {
-    pub fn switch(&self) -> Player
+    pub fn other(&self) -> PlayerColor
     {
         match self {
-            Player::Black => Player::White,
-            Player::White => Player::Black,
+            PlayerColor::Black => PlayerColor::White,
+            PlayerColor::White => PlayerColor::Black,
+        }
+    }
+
+    pub fn switch(&mut self)
+    {
+        *self = match *self {
+            PlayerColor::Black => PlayerColor::White,
+            PlayerColor::White => PlayerColor::Black,
         }
     }
 }
 
-impl Into<CellStatus> for Player
+impl Into<CellStatus> for PlayerColor
 {
     fn into(self) -> CellStatus
     {
         match self {
-            Player::Black => CellStatus::Black,
-            Player::White => CellStatus::White,
+            PlayerColor::Black => CellStatus::Black,
+            PlayerColor::White => CellStatus::White,
         }
     }
 }
 
-impl fmt::Display for Player
+impl fmt::Display for PlayerColor
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self {
-            Player::Black =>  write!(f, "black player"),
-            Player::White => write!(f, "white player"),
+            PlayerColor::Black =>  write!(f, "black player"),
+            PlayerColor::White => write!(f, "white player"),
         }
     }
 }
@@ -182,11 +124,11 @@ impl fmt::Display for RelativeTurn {
 #[derive(Debug, Clone)]
 pub struct Turn {
     pub position: Position,
-    pub player: Player,
+    pub player: PlayerColor,
 }
 
 #[derive(Debug, Clone, Copy)]
 pub enum GameEnd {
-    Win(Player),
+    Win(PlayerColor),
     Draw,
 }
