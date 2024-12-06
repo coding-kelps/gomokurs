@@ -1,15 +1,15 @@
 use crate::adapters::local::local::Local;
 use crate::adapters::local::parsers::*;
-use crate::domain::game_manager::models::*;
-use crate::domain::game_manager::ports::PlayerListener;
+use crate::domain::game::models::*;
+use crate::domain::game::ports::PlayerListener;
 use lazy_static::lazy_static;
 use regex::Regex;
 use anyhow::anyhow;
 
 impl PlayerListener for Local {
-    async fn listen_command(
+    async fn listen_action(
         &mut self,
-    ) -> Result<PlayerCommands, ListenCommandError> {
+    ) -> Result<PlayerAction, ListenActionError> {
         lazy_static! {
             static ref RE_OK: Regex = Regex::new(r"^OK$")
                 .expect("failed to initiate ok command regex!");
@@ -31,42 +31,42 @@ impl PlayerListener for Local {
 
         let line = self.reader.next_line()
             .await
-            .map_err(|e| ListenCommandError::Unknown(anyhow!(e)))?
+            .map_err(|e| ListenActionError::Unknown(anyhow!(e)))?
             .expect("self.reader.next_line() results is None");
 
         if RE_OK.is_match(&line) {
-            Ok(PlayerCommands::Ok)
+            Ok(PlayerAction::Ok)
         } else if RE_PLAY.is_match(&line) {
             let position = parse_position(&line)
-                .map_err(|e| ListenCommandError::Unknown(anyhow!(e)))?;
+                .map_err(|e| ListenActionError::Unknown(anyhow!(e)))?;
 
-            Ok(PlayerCommands::Play(position))
+            Ok(PlayerAction::Play(position))
         } else if RE_DESC.is_match(&line) {
             let infos = parse_player_informations(&line);
 
-            Ok(PlayerCommands::Description(infos))
+            Ok(PlayerAction::Description(infos))
         } else if RE_UNK.is_match(&line) {
             let content = parse_content(&line)
-                .map_err(|e| ListenCommandError::Unknown(anyhow!(e)))?;
+                .map_err(|e| ListenActionError::Unknown(anyhow!(e)))?;
 
-            Ok(PlayerCommands::Unknown(content))
+            Ok(PlayerAction::Unknown(content))
         } else if RE_ERR.is_match(&line) {
             let content = parse_content(&line)
-                .map_err(|e| ListenCommandError::Unknown(anyhow!(e)))?;
+                .map_err(|e| ListenActionError::Unknown(anyhow!(e)))?;
 
-            Ok(PlayerCommands::Error(content))
+            Ok(PlayerAction::Error(content))
         } else if RE_MSG.is_match(&line) {
             let content = parse_content(&line)
-                .map_err(|e| ListenCommandError::Unknown(anyhow!(e)))?;
+                .map_err(|e| ListenActionError::Unknown(anyhow!(e)))?;
 
-            Ok(PlayerCommands::Message(content))
+            Ok(PlayerAction::Message(content))
         } else if RE_DBG.is_match(&line) {
             let content = parse_content(&line)
-                .map_err(|e| ListenCommandError::Unknown(anyhow!(e)))?;
+                .map_err(|e| ListenActionError::Unknown(anyhow!(e)))?;
 
-            Ok(PlayerCommands::Debug(content))
+            Ok(PlayerAction::Debug(content))
         } else {
-            Err(ListenCommandError::UnknownCommand)
+            Err(ListenActionError::UnknownCommand)
         }
     }
 }

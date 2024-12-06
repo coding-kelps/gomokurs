@@ -1,6 +1,6 @@
-use crate::domain::game_manager::models::{board::*, game::*};
+use crate::domain::game::models::{board::*, game::*};
 
-pub enum PlayerCommands {
+pub enum PlayerAction {
     Ok,
     Play(Position),
     Description(PlayerInformations),
@@ -10,4 +10,3 @@ pub enum PlayerCommands {
     Debug(String),
     Suggestion(Position),
 }
-

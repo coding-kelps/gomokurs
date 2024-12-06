@@ -2,7 +2,7 @@ use thiserror::Error;
 
 // PlayerListener's errors
 #[derive(Debug, Error)]
-pub enum ListenCommandError {
+pub enum ListenActionError {
     #[error("unknown command")]
     UnknownCommand,
     #[error(transparent)]
