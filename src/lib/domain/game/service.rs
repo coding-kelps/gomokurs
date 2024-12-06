@@ -1,6 +1,7 @@
 use crate::domain::game::ports::{GameService, PlayerNotifier};
 use crate::domain::game::models::*;
 use uuid::Uuid;
+use std::sync::{Arc, Mutex};
 
 #[derive(Debug, Clone)]
 struct Player<N>
@@ -8,7 +9,7 @@ where
     N: PlayerNotifier
 {
     pub ready: bool,
-    pub notifier: N,
+    pub notifier: Arc<Mutex<N>>,
     pub infos: Option<PlayerInformations>,
 }
 
@@ -29,8 +30,8 @@ where
     N: PlayerNotifier
 {
     pub fn new(
-        black_notifier: N,
-        white_notifier: N,
+        black_notifier: Arc<Mutex<N>>,
+        white_notifier: Arc<Mutex<N>>,
         size: u8,
     ) -> Self {
         Self {
@@ -50,7 +51,6 @@ where
     async fn handle_player_action(
         &mut self,
         action: PlayerAction,
-        #[allow(unused_variables)]
         player: PlayerColor,
     ) -> Result<Option<GameEnd>, PlayError> {
         match action {
@@ -59,43 +59,64 @@ where
                     if !self.black_player.ready {
                         self.black_player.ready = true;
                     } else {
-                        let _ = self.black_player.notifier.notify_error("player has already declared to be ready").await;
+                        let mut locked_notifier = self.black_player.notifier.lock().unwrap();
+
+                        let _ = locked_notifier.notify_error("player has already declared to be ready").await;
                     }
                 } else {
                     if !self.white_player.ready {
                         self.white_player.ready = true;
                     } else {
-                        let _ = self.white_player.notifier.notify_error("player has already declared to be ready").await;
+                        let mut locked_notifier = self.white_player.notifier.lock().unwrap();
+
+                        let _ = locked_notifier.notify_error("player has already declared to be ready").await;
                     }
                 }
             },
             PlayerAction::Play(position) => {
                 if player == PlayerColor::Black {
                     if !self.black_player.ready {
-                        let _ = self.black_player.notifier.notify_error("player isn't ready").await;
+                        let mut locked_notifier = self.black_player.notifier.lock().unwrap();
+
+                        let _ = locked_notifier.notify_error("player hasn't declared to be ready").await;
                     } else if player != self.turn_player {
-                        let _ = self.black_player.notifier.notify_error("it isn't player turn").await;
+                        let mut locked_notifier = self.black_player.notifier.lock().unwrap();
+
+                        let _ = locked_notifier.notify_error("it isn't player turn").await;
                     } else {
                         let _ = self.board.set_cell(position, player.into());
     
-                        if self.board.check_win(position, player.into()) {    
-                            let _ = self.black_player.notifier.notify_end().await;
-                            let _ = self.white_player.notifier.notify_end().await;
+                        if self.board.check_win(position, player.into()) {
+                            let mut locked_notifier = self.black_player.notifier.lock().unwrap();
+
+                            let _ = locked_notifier.notify_end().await;
+
+                            let mut locked_notifier = self.white_player.notifier.lock().unwrap();
+
+                            let _ = locked_notifier.notify_end().await;
 
                             return Ok(Some(GameEnd::Win(player)))
                         }
                     }
                 } else {
                     if !self.white_player.ready {
-                        let _ = self.white_player.notifier.notify_error("player isn't ready").await;
+                        let mut locked_notifier = self.white_player.notifier.lock().unwrap();
+
+                        let _ = locked_notifier.notify_error("player hasn't declared to be ready").await;
                     } else if player != self.turn_player {
-                        let _ = self.white_player.notifier.notify_error("it isn't player turn").await;
+                        let mut locked_notifier = self.white_player.notifier.lock().unwrap();
+
+                        let _ = locked_notifier.notify_error("it isn't player turn").await;
                     } else {
                         let _ = self.board.set_cell(position, player.into());
     
                         if self.board.check_win(position, player.into()) {    
-                            let _ = self.white_player.notifier.notify_end().await;
-                            let _ = self.black_player.notifier.notify_end().await;
+                            let mut locked_notifier = self.white_player.notifier.lock().unwrap();
+
+                            let _ = locked_notifier.notify_end().await;
+                            let mut locked_notifier = self.black_player.notifier.lock().unwrap();
+
+                            let _ = locked_notifier.notify_end().await;
 
                             return Ok(Some(GameEnd::Win(player)))
                         }
