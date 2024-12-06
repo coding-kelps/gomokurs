@@ -1,44 +1,53 @@
 use thiserror::Error;
 
-// Player Client's Requests
+// PlayerListener's errors
 #[derive(Debug, Error)]
-pub enum RequestStartError {
+pub enum ListenCommandError {
+    #[error("unknown command")]
+    UnknownCommand,
+    #[error(transparent)]
+    Unknown(#[from] anyhow::Error),
+}
+
+// PlayerNotifier's errors
+#[derive(Debug, Error)]
+pub enum NotifyStartError {
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }
 
 #[derive(Debug, Error)]
-pub enum RequestTurnError {
+pub enum NotifyTurnError {
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }
 
 #[derive(Debug, Error)]
-pub enum RequestBeginError {
+pub enum NotifyBeginError {
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }
 
 #[derive(Debug, Error)]
-pub enum RequestBoardError {
+pub enum NotifyBoardError {
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }
 
 #[derive(Debug, Error)]
-pub enum RequestInfoError {
+pub enum NotifyInfoError {
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }
 
 #[derive(Debug, Error)]
-pub enum RequestEndError {
+pub enum NotifyEndError {
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }
 
 #[derive(Debug, Error)]
-pub enum RequestAboutError {
+pub enum NotifyAboutError {
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }
