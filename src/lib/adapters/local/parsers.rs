@@ -18,9 +18,8 @@ pub fn parse_position(
     s: &str
 ) -> Result<Position, ParsePositionError> {
     lazy_static! {
-        static ref RE: Regex = Regex::new(r"^(\d+),(\d+)$")
+        static ref RE: Regex = Regex::new(r"^(?:SUGGEST\s*)?(\d+),(\d+)$")
             .expect("Position regular expression failed to initiate itself!");
-
     }
 
     match RE.captures(s) {
@@ -34,7 +33,6 @@ pub fn parse_position(
     }
 }
 
-
 pub fn parse_player_informations(
     s: &str
 ) -> PlayerInformations {
@@ -47,5 +45,29 @@ pub fn parse_player_informations(
         info: RE.captures_iter(s)
             .map(|caps| (caps[1].to_string(), caps[2].to_string()))
             .collect()
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum ParseContentError {
+    #[error("regular expression failed to compile")]
+    InvalidRegex(#[from] regex::Error),
+    #[error("player move format is invalid")]
+    InvalidFormat,
+}
+
+pub fn parse_content(
+    s: &str
+) -> Result<String, ParseContentError> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r"^(?:ERROR|UNKNOWN|DEBUG|MESSAGE)\s?(.*)$")
+            .expect("Content regular expression failed to initiate itself!");
+    }
+
+    match RE.captures(s) {
+        Some(caps) => {
+            Ok(caps[1].to_string())
+        }
+        None => Err(ParseContentError::InvalidFormat),
     }
 }

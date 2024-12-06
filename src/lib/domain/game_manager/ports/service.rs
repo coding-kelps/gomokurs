@@ -1,12 +1,12 @@
 use crate::domain::game_manager::models::Game;
-use crate::domain::game_manager::ports::PlayerClient;
+use crate::domain::game_manager::ports::PlayerNotifier;
 
-pub trait GameService<C>
+pub trait GameService<N>
 where
-    C: PlayerClient
+    N: PlayerNotifier
 {
     fn new_game(
         &mut self,
-        game: Game<C>,
+        game: Game<N>,
     ) -> impl std::future::Future<Output = Result<(), ()>>;
 }

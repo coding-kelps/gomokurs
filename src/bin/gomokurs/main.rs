@@ -1,4 +1,4 @@
-use gomokurs::outbound::LocalProgram;
+use gomokurs::adapters::LocalProgram;
 use std::path::Path;
 
 #[tokio::main]
