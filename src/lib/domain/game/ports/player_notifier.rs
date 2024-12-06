@@ -1,6 +1,6 @@
-use crate::domain::game_manager::models::*;
+use crate::domain::game::models::*;
 
-pub trait PlayerNotifier: Send + Sync + Clone + 'static {
+pub trait PlayerNotifier: Send + Sync + 'static {
     fn notify_start(
         &mut self,
         size: u8,

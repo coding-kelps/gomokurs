@@ -1,5 +1,5 @@
 use regex::{self, Regex};
-use crate::domain::game_manager::models::{Position, PlayerInformations};
+use crate::domain::game::models::{Position, PlayerInformations};
 use thiserror::Error;
 use std::num::ParseIntError;
 use lazy_static::lazy_static;
