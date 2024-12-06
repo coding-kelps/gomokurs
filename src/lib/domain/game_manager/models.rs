@@ -1,7 +1,9 @@
 mod game;
 mod board;
-mod requests;
+mod errors;
+mod commands;
 
 pub use game::*;
 pub use board::*;
-pub use requests::*;
+pub use errors::*;
+pub use commands::*;

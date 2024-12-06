@@ -1,33 +1,34 @@
 use std::fmt;
 use std::collections::HashMap;
+use std::hash::Hash;
 use std::path::PathBuf;
 use crate::domain::game_manager::models::board::*;
-use crate::domain::game_manager::models::requests::*;
-use crate::domain::game_manager::ports::PlayerClient;
+use crate::domain::game_manager::models::errors::*;
+use crate::domain::game_manager::ports::PlayerNotifier;
 use thiserror::Error;
 use uuid::Uuid;
 use anyhow::anyhow;
 
 #[derive(Debug, Clone)]
-pub struct Game<C>
+pub struct Game<N>
 where
-    C: PlayerClient
+    N: PlayerNotifier
 {
     pub uuid: Uuid,
-    black_player: C,
-    white_player: C,
+    black_player: N,
+    white_player: N,
     board: Board,
-    player_turn: Player,
+    turn_player: Player,
     _turn_history: Vec<Turn>,
 }
 
-impl<C> Game<C>
+impl<N> Game<N>
 where
-    C: PlayerClient
+    N: PlayerNotifier
 {
     pub fn new(
-        black_player: C,
-        white_player: C,
+        black_player: N,
+        white_player: N,
         size: u8,
     ) -> Self {
         Self {
@@ -35,42 +36,29 @@ where
             black_player: black_player,
             white_player: white_player,
             board: Board::new(size),
-            player_turn: Player::Black,
+            turn_player: Player::Black,
             _turn_history: vec![],
         }
     }
 
-    pub async fn play(
+    pub async fn play_turn(
         &mut self,
+        turn: Turn,
     ) -> Result<GameEnd, PlayError> {
-        let mut last_move = self.black_player.request_begin().await
-            .map_err(|e: RequestBeginError| PlayError::Unknown(anyhow!(e)))?;
-
-        self.board.set_cell(last_move, CellStatus::Black)
+        self.board.set_cell(turn.position, turn.player.into())
             .map_err(|e: SetCellError| PlayError::Unknown(anyhow!(e)))?;
 
-        for _ in 1..(self.board.size as u32).pow(2) {
-            self.player_turn = self.player_turn.switch();
-            let client = match self.player_turn {
-                Player::Black => &mut self.black_player,
-                Player::White => &mut self.white_player,
-            };
-            last_move = client.request_turn(last_move).await
-                .map_err(|e: RequestTurnError| PlayError::Unknown(anyhow!(e)))?;
-
-            self.board.set_cell(last_move, self.player_turn.into())
-                .map_err(|e: SetCellError| PlayError::Unknown(anyhow!(e)))?;
-
-            if self.board.check_win(last_move, self.player_turn.into()) {
-                for c in [& mut self.black_player, & mut self.white_player] {
-                    c.request_end()
-                        .await
-                        .map_err(|e: RequestEndError| PlayError::Unknown(anyhow!(e)))?;
-                }
-
-                return Ok(GameEnd::Win(self.player_turn))
+        if self.board.check_win(turn.position, turn.player.into()) {
+            for n in [& mut self.black_player, & mut self.white_player] {
+                n.notify_end()
+                    .await
+                    .map_err(|e: NotifyEndError| PlayError::Unknown(anyhow!(e)))?;
             }
+
+            return Ok(GameEnd::Win(self.turn_player))
         }
+
+        self.turn_player = self.turn_player.switch();
 
         Ok(GameEnd::Draw)
     }
@@ -197,7 +185,7 @@ pub struct Turn {
     pub player: Player,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum GameEnd {
     Win(Player),
     Draw,
