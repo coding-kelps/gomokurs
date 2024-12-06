@@ -32,4 +32,14 @@ pub trait PlayerNotifier: Send + Sync + 'static {
     fn notify_about(
         &mut self,
     ) -> impl std::future::Future<Output = Result<(), NotifyAboutError>>;
+
+    fn notify_unknown(
+        &mut self,
+        content: &str,
+    ) -> impl std::future::Future<Output = Result<(), NotifyAboutError>>;
+
+    fn notify_error(
+        &mut self,
+        content: &str,
+    ) -> impl std::future::Future<Output = Result<(), NotifyAboutError>>;
 }
