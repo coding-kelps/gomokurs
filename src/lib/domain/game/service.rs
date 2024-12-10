@@ -1,7 +1,6 @@
 use crate::domain::game::ports::{GameService, PlayerNotifier};
 use crate::domain::game::models::*;
 use uuid::Uuid;
-use std::sync::{Arc, Mutex};
 
 #[derive(Debug, Clone)]
 struct Player<N>
@@ -9,7 +8,7 @@ where
     N: PlayerNotifier
 {
     pub ready: bool,
-    pub notifier: Arc<Mutex<N>>,
+    pub notifier: N,
     pub infos: Option<PlayerInformations>,
 }
 
@@ -30,8 +29,8 @@ where
     N: PlayerNotifier
 {
     pub fn new(
-        black_notifier: Arc<Mutex<N>>,
-        white_notifier: Arc<Mutex<N>>,
+        black_notifier: N,
+        white_notifier: N,
         size: u8,
     ) -> Self {
         Self {
@@ -48,98 +47,125 @@ impl<N> GameService<N> for Service<N>
 where
     N: PlayerNotifier
 {
-    async fn handle_player_action(
-        &mut self,
-        action: PlayerAction,
-        player: PlayerColor,
-    ) -> Result<Option<GameEnd>, PlayError> {
-        match action {
-            PlayerAction::Ok => {
-                if player == PlayerColor::Black {
-                    if !self.black_player.ready {
-                        self.black_player.ready = true;
-                    } else {
-                        let mut locked_notifier = self.black_player.notifier.lock().unwrap();
-
-                        let _ = locked_notifier.notify_error("player has already declared to be ready").await;
-                    }
+    async fn register_ok(
+            &mut self,
+            player: PlayerColor,
+        ) -> Result<(), ()> {
+        match player {
+            PlayerColor::Black => {
+                if !self.black_player.ready {
+                    self.black_player.ready = true;
                 } else {
-                    if !self.white_player.ready {
-                        self.white_player.ready = true;
-                    } else {
-                        let mut locked_notifier = self.white_player.notifier.lock().unwrap();
-
-                        let _ = locked_notifier.notify_error("player has already declared to be ready").await;
-                    }
+                    let _ = self.black_player.notifier.notify_error("player has already declared to be ready").await;
                 }
             },
-            PlayerAction::Play(position) => {
-                if player == PlayerColor::Black {
-                    if !self.black_player.ready {
-                        let mut locked_notifier = self.black_player.notifier.lock().unwrap();
-
-                        let _ = locked_notifier.notify_error("player hasn't declared to be ready").await;
-                    } else if player != self.turn_player {
-                        let mut locked_notifier = self.black_player.notifier.lock().unwrap();
-
-                        let _ = locked_notifier.notify_error("it isn't player turn").await;
-                    } else {
-                        let _ = self.board.set_cell(position, player.into());
-    
-                        if self.board.check_win(position, player.into()) {
-                            let mut locked_notifier = self.black_player.notifier.lock().unwrap();
-
-                            let _ = locked_notifier.notify_end().await;
-
-                            let mut locked_notifier = self.white_player.notifier.lock().unwrap();
-
-                            let _ = locked_notifier.notify_end().await;
-
-                            return Ok(Some(GameEnd::Win(player)))
-                        }
-                    }
+            PlayerColor::White => {
+                if !self.white_player.ready {
+                    self.white_player.ready = true;
                 } else {
-                    if !self.white_player.ready {
-                        let mut locked_notifier = self.white_player.notifier.lock().unwrap();
-
-                        let _ = locked_notifier.notify_error("player hasn't declared to be ready").await;
-                    } else if player != self.turn_player {
-                        let mut locked_notifier = self.white_player.notifier.lock().unwrap();
-
-                        let _ = locked_notifier.notify_error("it isn't player turn").await;
-                    } else {
-                        let _ = self.board.set_cell(position, player.into());
-    
-                        if self.board.check_win(position, player.into()) {    
-                            let mut locked_notifier = self.white_player.notifier.lock().unwrap();
-
-                            let _ = locked_notifier.notify_end().await;
-                            let mut locked_notifier = self.black_player.notifier.lock().unwrap();
-
-                            let _ = locked_notifier.notify_end().await;
-
-                            return Ok(Some(GameEnd::Win(player)))
-                        }
-                    }
+                    let _ = self.white_player.notifier.notify_error("player has already declared to be ready").await;
                 }
             },
-            PlayerAction::Description(desc) => {
-                if player == PlayerColor::Black {
-                    self.black_player.infos = Some(desc);
-                } else {
-                    self.white_player.infos = Some(desc);
-                }
-            },
-            // TO DO
-            // Not urgent though the message should
-            // only be logged in the output.
-            PlayerAction::Unknown(_) => (),
-            PlayerAction::Error(_) => (),
-            PlayerAction::Message(_) => (),
-            PlayerAction::Debug(_) => (),
-            PlayerAction::Suggestion(_) => (),
         };
 
-        Ok(None)
+        Ok(())
+    }
+
+
+    async fn register_move(
+            &mut self,
+            position: Position,
+            player: PlayerColor,
+        ) -> Result<(), ()> {
+        match player {
+            PlayerColor::Black => {
+                if !self.black_player.ready {
+                    let _ = self.black_player.notifier.notify_error("player hasn't declared to be ready").await;
+                } else if player != self.turn_player {
+                    let _ = self.black_player.notifier.notify_error("it isn't player turn").await;
+                } else {
+                    let _ = self.board.set_cell(position, player.into());
+
+                    if self.board.check_win(position, player.into()) {
+                        let _ = self.black_player.notifier.notify_end().await;
+                        let _ = self.white_player.notifier.notify_end().await;
+                    }
+                }
+            },
+            PlayerColor::White => {
+                if !self.white_player.ready {
+                    let _ = self.white_player.notifier.notify_error("player hasn't declared to be ready").await;
+                } else if player != self.turn_player {
+                    let _ = self.white_player.notifier.notify_error("it isn't player turn").await;
+                } else {
+                    let _ = self.board.set_cell(position, player.into());
+
+                    if self.board.check_win(position, player.into()) {    
+                        let _ = self.white_player.notifier.notify_end().await;
+                        let _ = self.black_player.notifier.notify_end().await;
+                    }
+                }
+            },
+        };
+
+        Ok(())
+    }
+
+    async fn register_description(
+        &mut self,
+        description: PlayerInformations,
+        player: PlayerColor,
+    ) -> Result<(), ()> {
+        match player {
+            PlayerColor::Black => self.black_player.infos = Some(description),
+            PlayerColor::White => self.white_player.infos = Some(description),
+        };
+
+        Ok(())
+    }
+
+    #[allow(unused_variables)]
+    async fn register_unknown(
+        &mut self,
+        content: String,
+        player: PlayerColor,
+    ) -> Result<(), ()> {    
+        Ok(())
+    }
+
+    #[allow(unused_variables)]
+    async fn register_error(
+        &mut self,
+        content: String,
+        player: PlayerColor,
+    ) -> Result<(), ()> {    
+        Ok(())
+    }
+
+    #[allow(unused_variables)]
+    async fn register_message(
+        &mut self,
+        content: String,
+        player: PlayerColor,
+    ) -> Result<(), ()> {    
+        Ok(())
+    }
+
+    #[allow(unused_variables)]
+    async fn register_debug(
+        &mut self,
+        content: String,
+        player: PlayerColor,
+    ) -> Result<(), ()> {    
+        Ok(())
+    }
+
+    #[allow(unused_variables)]
+    async fn register_suggestion(
+        &mut self,
+        position: Position,
+        player: PlayerColor,
+    ) -> Result<(), ()> {
+        Ok(())
     }
 }
