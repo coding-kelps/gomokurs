@@ -2,44 +2,44 @@ use crate::domain::game::models::*;
 
 pub trait PlayerNotifier: Send + Sync + 'static {
     fn notify_start(
-        &mut self,
+        &self,
         size: u8,
-    ) -> impl std::future::Future<Output = Result<(), NotifyStartError>> + Send;
+    ) -> impl std::future::Future<Output = Result<(), NotifyStartError>>;
 
     fn notify_turn(
-        &mut self,
+        &self,
         position: Position,
-    ) -> impl std::future::Future<Output = Result<(), NotifyTurnError>> + Send;
+    ) -> impl std::future::Future<Output = Result<(), NotifyTurnError>>;
     
     fn notify_begin(
-        &mut self,
+        &self,
     ) -> impl std::future::Future<Output = Result<(), NotifyBeginError>>;
 
     fn notify_board(
-        &mut self,
+        &self,
         turns: Vec<RelativeTurn>,
     ) -> impl std::future::Future<Output = Result<(), NotifyBoardError>>;
 
     fn notify_info(
-        &mut self,
+        &self,
         info: Information,
     ) -> impl std::future::Future<Output = Result<(), NotifyInfoError>>;
 
     fn notify_end(
-        &mut self,
+        &self,
     ) -> impl std::future::Future<Output = Result<(), NotifyEndError>>;
 
     fn notify_about(
-        &mut self,
+        &self,
     ) -> impl std::future::Future<Output = Result<(), NotifyAboutError>>;
 
     fn notify_unknown(
-        &mut self,
+        &self,
         content: &str,
-    ) -> impl std::future::Future<Output = Result<(), NotifyAboutError>>;
+    ) -> impl std::future::Future<Output = Result<(), NotifyUnknownError>>;
 
     fn notify_error(
-        &mut self,
+        &self,
         content: &str,
-    ) -> impl std::future::Future<Output = Result<(), NotifyAboutError>>;
+    ) -> impl std::future::Future<Output = Result<(), NotifyErrorError>>;
 }

@@ -1,14 +1,13 @@
 use crate::adapters::local::local::Local;
 use crate::adapters::local::parsers::*;
 use crate::domain::game::models::*;
-use crate::domain::game::ports::PlayerListener;
 use lazy_static::lazy_static;
 use regex::Regex;
 use anyhow::anyhow;
 
-impl PlayerListener for Local {
+impl Local {
     async fn listen_action(
-        &mut self,
+        &self,
     ) -> Result<PlayerAction, ListenActionError> {
         lazy_static! {
             static ref RE_OK: Regex = Regex::new(r"^OK$")
@@ -29,7 +28,10 @@ impl PlayerListener for Local {
                 .expect("failed to initiate suggestion command regex!");
         }
 
-        let line = self.reader.next_line()
+        let mut reader = self.reader.lock()
+            .expect("failed to get reader from mutex");
+
+        let line = reader.next_line()
             .await
             .map_err(|e| ListenActionError::Unknown(anyhow!(e)))?
             .expect("self.reader.next_line() results is None");

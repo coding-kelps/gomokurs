@@ -3,11 +3,12 @@ use tokio::io::{AsyncBufReadExt, BufReader, Lines, BufWriter};
 use std::process::Stdio;
 use std::path::Path;
 use thiserror::Error;
+use std::sync::{Arc, Mutex};
 
 pub struct Local {
     _child: Child,
-    pub reader: Lines<BufReader<ChildStdout>>,
-    pub writer: BufWriter<ChildStdin>,
+    pub reader: Arc<Mutex<Lines<BufReader<ChildStdout>>>>,
+    pub writer: Arc<Mutex<BufWriter<ChildStdin>>>,
 }
 
 #[derive(Debug, Error)]
@@ -26,14 +27,11 @@ impl Local {
 
         let stdout = child.stdout.take().expect("");
         let stdin = child.stdin.take().expect("");
-
-        let reader = BufReader::new(stdout).lines();
-        let writer = BufWriter::new(stdin);
         
         Ok(Self {
             _child: child,
-            reader,
-            writer,
+            reader: Arc::new(Mutex::new(BufReader::new(stdout).lines())),
+            writer: Arc::new(Mutex::new(BufWriter::new(stdin))),
         })
     }
 }
