@@ -6,16 +6,18 @@ use anyhow::anyhow;
 
 impl PlayerNotifier for Local {
     async fn notify_start(
-        &mut self,
+        &self,
         size: u8,
     ) -> Result<(), NotifyStartError>
     {
-        self.writer
+        let mut writer = self.writer.lock().unwrap();
+
+        writer
             .write_all(format!("START {}\n", size).as_bytes())
             .await
             .map_err(|e| NotifyStartError::Unknown(anyhow!(e)))?;
 
-        self.writer
+        writer
             .flush()
             .await
             .map_err(|e| NotifyStartError::Unknown(anyhow!(e)))?;
@@ -24,16 +26,18 @@ impl PlayerNotifier for Local {
     }
 
     async fn notify_turn(
-        &mut self,
+        &self,
         position: Position,
     ) -> Result<(), NotifyTurnError>
     {
-        self.writer
+        let mut writer = self.writer.lock().unwrap();
+
+        writer
             .write_all(format!("TURN {}\n", position).as_bytes())
             .await
             .map_err(|e| NotifyTurnError::Unknown(anyhow!(e)))?;
 
-        self.writer
+        writer
             .flush()
             .await
             .map_err(|e| NotifyTurnError::Unknown(anyhow!(e)))?;
@@ -42,14 +46,16 @@ impl PlayerNotifier for Local {
     }
 
     async fn notify_begin(
-        &mut self,
+        &self,
     ) -> Result<(), NotifyBeginError>
     {
-        self.writer.write_all(b"BEGIN\n")
+        let mut writer = self.writer.lock().unwrap();
+
+        writer.write_all(b"BEGIN\n")
             .await
             .map_err(|e| NotifyBeginError::Unknown(anyhow!(e)))?;
 
-        self.writer.flush()
+        writer.flush()
             .await
             .map_err(|e| NotifyBeginError::Unknown(anyhow!(e)))?;
 
@@ -57,21 +63,23 @@ impl PlayerNotifier for Local {
     }
 
     async fn notify_board(
-        &mut self,
+        &self,
         turns: Vec<RelativeTurn>,
     ) -> Result<(), NotifyBoardError>
     {
-        self.writer.write_all(b"BOARD\n")
+        let mut writer = self.writer.lock().unwrap();
+
+        writer.write_all(b"BOARD\n")
             .await
             .map_err(|e| NotifyBoardError::Unknown(anyhow!(e)))?;
 
         for turn in turns {
-            self.writer.write_all(format!("{}\n", turn).as_bytes())
+            writer.write_all(format!("{}\n", turn).as_bytes())
                 .await
                 .map_err(|e| NotifyBoardError::Unknown(anyhow!(e)))?;
         }
 
-        self.writer.write_all(b"DONE\n")
+        writer.write_all(b"DONE\n")
             .await
             .map_err(|e| NotifyBoardError::Unknown(anyhow!(e)))?;
 
@@ -79,16 +87,18 @@ impl PlayerNotifier for Local {
     }
 
     async fn notify_info(
-        &mut self,
+        &self,
         info: Information,
     ) -> Result<(), NotifyInfoError>
     {
-        self.writer
+        let mut writer = self.writer.lock().unwrap();
+
+        writer
             .write_all(format!("INFO {}\n", info).as_bytes())
             .await
             .map_err(|e| NotifyInfoError::Unknown(anyhow!(e)))?;
 
-        self.writer
+        writer
             .flush()
             .await
             .map_err(|e| NotifyInfoError::Unknown(anyhow!(e)))?;
@@ -97,39 +107,47 @@ impl PlayerNotifier for Local {
     }
 
     async fn notify_end(
-        &mut self,
+        &self,
     ) -> Result<(), NotifyEndError>
     {
-        let _ = self.writer.write_all(b"END");
+        let mut writer = self.writer.lock().unwrap();
+
+        let _ = writer.write_all(b"END");
 
         Ok(())
     }
 
     async fn notify_about(
-        &mut self,
+        &self,
     ) -> Result<(), NotifyAboutError>
     {
-        let _ = self.writer.write_all(b"ABOUT");
+        let mut writer = self.writer.lock().unwrap();
+
+        let _ = writer.write_all(b"ABOUT");
 
         Ok(())
     }
 
     async fn notify_unknown(
-        &mut self,
+        &self,
         content: &str,
-    ) -> Result<(), NotifyAboutError>
+    ) -> Result<(), NotifyUnknownError>
     {
-        let _ = self.writer.write_all(format!("UNKNOWN {}", content).as_bytes());
+        let mut writer = self.writer.lock().unwrap();
+
+        let _ = writer.write_all(format!("UNKNOWN {}", content).as_bytes());
 
         Ok(())
     }
 
     async fn notify_error(
-        &mut self,
+        &self,
         content: &str,
-    ) -> Result<(), NotifyAboutError>
+    ) -> Result<(), NotifyErrorError>
     {
-        let _ = self.writer.write_all(format!("ERROR {}", content).as_bytes());
+        let mut writer = self.writer.lock().unwrap();
+
+        let _ = writer.write_all(format!("ERROR {}", content).as_bytes());
 
         Ok(())
     }
