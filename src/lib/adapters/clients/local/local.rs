@@ -3,7 +3,8 @@ use tokio::io::{AsyncBufReadExt, BufReader, Lines, BufWriter};
 use std::process::Stdio;
 use std::path::Path;
 use thiserror::Error;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 pub struct Local {
     _child: Child,

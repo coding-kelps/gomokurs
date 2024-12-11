@@ -1,5 +1,6 @@
 use crate::domain::game::models::{board::*, game::*};
 
+#[derive(Debug, Clone)]
 pub enum PlayerAction {
     Ok,
     Play(Position),
