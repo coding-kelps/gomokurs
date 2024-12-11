@@ -1,6 +1,13 @@
 use crate::domain::game::models::*;
+use tokio::sync::mpsc::Sender;
 
-pub trait PlayerNotifier: Send + Sync + 'static {
+pub trait PlayerClient: Send + Sync + 'static {
+    fn listen(
+        &self,
+        tx: Sender<(PlayerColor, PlayerAction)>,
+        player: PlayerColor,
+    ) -> impl std::future::Future<Output = Result<(), ()>> + Send;
+
     fn notify_start(
         &self,
         size: u8,

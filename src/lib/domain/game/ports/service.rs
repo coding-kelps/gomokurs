@@ -1,54 +1,10 @@
-use crate::domain::game::models::*;
-use crate::domain::game::ports::PlayerNotifier;
+use crate::domain::game::ports::PlayerClient;
 
-pub trait GameService<N>
+pub trait GameService<C>
 where
-    N: PlayerNotifier
+    C: PlayerClient
 {
-    fn register_ok(
+    fn play(
         &mut self,
-        player: PlayerColor,
-    ) -> impl std::future::Future<Output = Result<(), ()>>;
-
-    fn register_move(
-        &mut self,
-        position: Position,
-        player: PlayerColor,
-    ) -> impl std::future::Future<Output = Result<(), ()>>;
-
-    fn register_description(
-        &mut self,
-        description: PlayerInformations,
-        player: PlayerColor,
-    ) -> impl std::future::Future<Output = Result<(), ()>>;
-
-    fn register_unknown(
-        &mut self,
-        content: String,
-        player: PlayerColor,
-    ) -> impl std::future::Future<Output = Result<(), ()>>;
-
-    fn register_error(
-        &mut self,
-        content: String,
-        player: PlayerColor,
-    ) -> impl std::future::Future<Output = Result<(), ()>>;
-
-    fn register_message(
-        &mut self,
-        content: String,
-        player: PlayerColor,
-    ) -> impl std::future::Future<Output = Result<(), ()>>;
-
-    fn register_debug(
-        &mut self,
-        content: String,
-        player: PlayerColor,
-    ) -> impl std::future::Future<Output = Result<(), ()>>;
-
-    fn register_suggestion(
-        &mut self,
-        position: Position,
-        player: PlayerColor,
     ) -> impl std::future::Future<Output = Result<(), ()>>;
 }
