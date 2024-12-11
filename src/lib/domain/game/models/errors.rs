@@ -7,15 +7,6 @@ pub enum PlayError {
     Unknown(#[from] anyhow::Error),
 }
 
-// PlayerListener's errors
-#[derive(Debug, Error)]
-pub enum ListenActionError {
-    #[error("unknown command")]
-    UnknownCommand,
-    #[error(transparent)]
-    Unknown(#[from] anyhow::Error),
-}
-
 // PlayerNotifier's errors
 #[derive(Debug, Error)]
 pub enum NotifyStartError {
