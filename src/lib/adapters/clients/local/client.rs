@@ -14,14 +14,14 @@ impl PlayerClient for Local {
         &self,
         tx: Sender<(PlayerColor, PlayerAction)>,
         player: PlayerColor,
-    ) -> Result<(), ()> {
+    ) -> Result<(), ListenError> {
         loop {
             let line = {
                 let mut locked_reader = self.reader.lock().await;
                 
                 locked_reader.next_line()
                     .await
-                    .map_err(|_| ())?
+                    .map_err(|e| anyhow!(e))?
                     .expect("self.reader.next_line() results is None")
             };
 
