@@ -2,6 +2,7 @@ use std::path::Path;
 use gomokurs::adapters::clients::Local;
 use gomokurs::domain::game::ports::GameService;
 use gomokurs::domain::game::Game;
+use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
@@ -10,6 +11,8 @@ async fn main() {
     let local_1 = Local::new(binary).await.unwrap();
     let local_2 = Local::new(binary).await.unwrap();
 
-    let mut game = Game::new(local_1, local_2, 20);
-    let _ = game.play().await;
+    let mut game = Game::new(Arc::new(local_1), Arc::new(local_2), 20);
+    let end = game.play().await.unwrap();
+
+    println!("{:?}", end);
 }

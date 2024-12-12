@@ -1,4 +1,5 @@
 use crate::domain::game::ports::PlayerClient;
+use crate::domain::game::models::{GameEnd, PlayError};
 
 pub trait GameService<C>
 where
@@ -6,5 +7,5 @@ where
 {
     fn play(
         &mut self,
-    ) -> impl std::future::Future<Output = Result<(), ()>>;
+    ) -> impl std::future::Future<Output = Result<GameEnd, PlayError>>;
 }

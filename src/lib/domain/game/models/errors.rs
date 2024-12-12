@@ -3,6 +3,8 @@ use thiserror::Error;
 // Service's errors
 #[derive(Debug, Error)]
 pub enum PlayError {
+    #[error("channel abruptly close")]
+    ActionsChannelAbruptlyClose,
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }
