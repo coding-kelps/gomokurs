@@ -6,7 +6,7 @@ pub trait PlayerClient: Send + Sync + 'static {
         &self,
         tx: Sender<(PlayerColor, PlayerAction)>,
         player: PlayerColor,
-    ) -> impl std::future::Future<Output = Result<(), ()>> + Send;
+    ) -> impl std::future::Future<Output = Result<(), ListenError>> + Send;
 
     fn notify_start(
         &self,
