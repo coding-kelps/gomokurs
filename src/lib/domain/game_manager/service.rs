@@ -40,38 +40,52 @@ where
         listeners.spawn(async move { white_client.listen(actions_tx_white, PlayerColor::White).await });
         
         game.init_game().await?;
-        
-        while let Some((color, action)) = actions_rx.recv().await {            
-            match action {
-                PlayerAction::Ok => {                    
-                    game.handle_ok(color).await?;
-                },
-                PlayerAction::Play(position) => {
-                    if let Some(end) = game.handle_play(color, position).await? {
-                        return Ok(end);
+
+        loop {
+            tokio::select! {
+                Some((color, action)) = actions_rx.recv() => {
+                    match action {
+                        PlayerAction::Ok => {                    
+                            game.handle_ok(color).await?;
+                        },
+                        PlayerAction::Play(position) => {
+                            if let Some(end) = game.handle_play(color, position).await? {
+                                return Ok(end);
+                            }
+                        },
+                        PlayerAction::Description(description) => {
+                            game.handle_description(color, description).await?;
+                        },
+                        PlayerAction::Unknown(content) => {
+                            game.handle_unknown(color, content).await?;
+                        },
+                        PlayerAction::Error(content) => {
+                            game.handle_error(color, content).await?;
+                        },
+                        PlayerAction::Message(content) => {
+                            game.handle_message(color, content).await?;
+                        },
+                        PlayerAction::Debug(content) => {
+                            game.handle_debug(color, content).await?;
+                        },
+                        PlayerAction::Suggestion(position) => {
+                            game.handle_suggestion(color, position).await?;
+                        },
                     }
                 },
-                PlayerAction::Description(description) => {
-                    game.handle_description(color, description).await?;
+                Some(res) = listeners.join_next() => {
+                    match res {
+                        Err(e) => return Err(e.into()),
+                        Ok(listener_res) => match listener_res {
+                            Err(e)=> return Err(e.into()),
+                            Ok(_) => continue,
+                        }
+                    }
                 },
-                PlayerAction::Unknown(content) => {
-                    game.handle_unknown(color, content).await?;
-                },
-                PlayerAction::Error(content) => {
-                    game.handle_error(color, content).await?;
-                },
-                PlayerAction::Message(content) => {
-                    game.handle_message(color, content).await?;
-                },
-                PlayerAction::Debug(content) => {
-                    game.handle_debug(color, content).await?;
-                },
-                PlayerAction::Suggestion(position) => {
-                    game.handle_suggestion(color, position).await?;
-                },
+                else => {
+                    return Err(Error::ChannelClosed);
+                }
             }
         }
-
-        Err(Error::ChannelClosed)
     }
 }
