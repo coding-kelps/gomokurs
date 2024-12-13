@@ -1,5 +1,52 @@
 use std::fmt;
+use std::hash::Hash;
 use thiserror::Error;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PlayerColor {
+    Black,
+    White,
+}
+
+impl PlayerColor
+{
+    pub fn other(&self) -> PlayerColor
+    {
+        match self {
+            PlayerColor::Black => PlayerColor::White,
+            PlayerColor::White => PlayerColor::Black,
+        }
+    }
+
+    pub fn switch(&mut self)
+    {
+        *self = match *self {
+            PlayerColor::Black => PlayerColor::White,
+            PlayerColor::White => PlayerColor::Black,
+        }
+    }
+}
+
+impl Into<CellStatus> for PlayerColor
+{
+    fn into(self) -> CellStatus
+    {
+        match self {
+            PlayerColor::Black => CellStatus::Black,
+            PlayerColor::White => CellStatus::White,
+        }
+    }
+}
+
+impl fmt::Display for PlayerColor
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self {
+            PlayerColor::Black =>  write!(f, "black player"),
+            PlayerColor::White => write!(f, "white player"),
+        }
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, Copy)]
 pub struct Position {
@@ -187,4 +234,20 @@ impl fmt::Display for Board
 
         writeln!(f, "{}", board_as_string)
     }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum GameEnd {
+    Win(PlayerColor),
+    Draw,
+}
+
+#[derive(Debug, Error)]
+pub enum Error {
+    #[error("it is not `{0}` turn")]
+    NotPlayerTurn(PlayerColor),
+    #[error("set cell error: `{0}`")]
+    SetCellError(#[from] SetCellError),
+    #[error(transparent)]
+    Unknown(#[from] anyhow::Error),
 }

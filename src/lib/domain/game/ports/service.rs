@@ -1,11 +1,56 @@
-use crate::domain::game::ports::PlayerClient;
-use crate::domain::game::models::{GameEnd, Error};
+use crate::domain::gomoku::models::Position;
+use crate::domain::game::models::{Error, PlayerColor, PlayerDescription};
 
-pub trait GameService<C>
-where
-    C: PlayerClient
+pub trait GameService
 {
-    fn play(
+    fn init_game(
+        &self,
+    ) -> impl std::future::Future<Output = Result<(), Error>>;
+
+    fn handle_ok(
         &mut self,
-    ) -> impl std::future::Future<Output = Result<GameEnd, Error>>;
+        color: PlayerColor,
+    ) -> impl std::future::Future<Output = Result<(), Error>>;
+
+    fn handle_play(
+        &mut self,
+        color: PlayerColor,
+        position: Position,
+    ) -> impl std::future::Future<Output = Result<(), Error>>;
+
+    fn handle_description(
+        &mut self,
+        color: PlayerColor,
+        description: PlayerDescription,
+    ) -> impl std::future::Future<Output = Result<(), Error>>;
+
+    fn handle_unknown(
+        &self,
+        color: PlayerColor,
+        content: String,
+    ) -> impl std::future::Future<Output = Result<(), Error>>;
+
+    fn handle_error(
+        &self,
+        color: PlayerColor,
+        content: String,
+    ) -> impl std::future::Future<Output = Result<(), Error>>;
+
+    fn handle_message(
+        &self,
+        color: PlayerColor,
+        content: String,
+    ) -> impl std::future::Future<Output = Result<(), Error>>;
+
+    fn handle_debug(
+        &self,
+        color: PlayerColor,
+        content: String,
+    ) -> impl std::future::Future<Output = Result<(), Error>>;
+
+    fn handle_suggestion(
+        &self,
+        color: PlayerColor,
+        position: Position,
+    ) -> impl std::future::Future<Output = Result<(), Error>>;
 }
