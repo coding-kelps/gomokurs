@@ -1,6 +1,7 @@
 use crate::domain::game::ports::PlayerClient;
 pub use crate::domain::gomoku::models::{PlayerColor, Position};
-pub use crate::domain::game::models::Error as GameError;
+pub use crate::domain::game::models::{Error as GameError, ListenError};
+use tokio::task::JoinError;
 use std::sync::Arc;
 use std::collections::HashMap;
 use thiserror::Error;
@@ -105,21 +106,12 @@ impl fmt::Display for Information {
 pub enum Error {
     #[error("actions' channel abruptly closed ")]
     ChannelClosed,
+    #[error("listeners join set error: `{0}`")]
+    JoinError(#[from] JoinError),
+    #[error("listener error: `{0}`")]
+    ListenError(#[from] ListenError), 
     #[error("game error: `{0}`")]
     GameError(#[from] GameError),
-    #[error(transparent)]
-    Unknown(#[from] anyhow::Error),
-}
-
-// PlayerClient's errors
-#[derive(Debug, Error)]
-pub enum ListenError {
-    #[error(transparent)]
-    Unknown(#[from] anyhow::Error),
-}
-
-#[derive(Debug, Error)]
-pub enum NotifyError {
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }
