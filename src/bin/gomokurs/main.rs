@@ -7,6 +7,9 @@ use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
+    let subscriber = tracing_subscriber::fmt().with_max_level(tracing::Level::DEBUG).finish();
+    let _ = tracing::subscriber::set_global_default(subscriber);
+
     let binary = Path::new("./.debug/gomocku");
 
     let local_1 = Arc::new(Local::new(binary).await.unwrap());
