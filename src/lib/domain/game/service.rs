@@ -11,7 +11,7 @@ where
 {
     pub ready: bool,
     pub client: Arc<C>,
-    pub infos: Option<PlayerInformations>,
+    pub infos: Option<PlayerDescription>,
 }
 
 
@@ -36,7 +36,8 @@ where
         black_client: Arc<C>,
         white_client: Arc<C>,
         size: u8,
-    ) -> Self {
+    ) -> Self
+    {
         let (actions_tx_black, actions_rx) = channel::<(PlayerColor, PlayerAction)>(100);
         let actions_tx_white = actions_tx_black.clone();
 
@@ -58,36 +59,34 @@ where
         }
     }
 
-        async fn register_ok(
-            &mut self,
-            player: PlayerColor,
-        ) -> Result<(), ()> {
-        match player {
-            PlayerColor::Black => {
-                if !self.black_player.ready {
-                    self.black_player.ready = true;
-                } else {
-                    let _ = self.black_player.client.notify_error("player has already declared to be ready").await;
-                }
-            },
-            PlayerColor::White => {
-                if !self.white_player.ready {
-                    self.white_player.ready = true;
-                } else {
-                    let _ = self.white_player.client.notify_error("player has already declared to be ready").await;
-                }
-            },
+    async fn register_player_readiness(
+        &mut self,
+        player: PlayerColor,
+    ) -> Result<(), Error>
+    {
+        let current_player = match player {
+            PlayerColor::Black => &mut self.black_player,
+            PlayerColor::White => &mut self.white_player,
         };
+
+        if !current_player.ready {
+            current_player.ready = true;
+        } else {
+            current_player.client
+                .notify_error("player has already declared to be ready")
+                .await
+                .map_err(|error| Error::NotifyError { error, player })?;
+        }
 
         Ok(())
     }
 
 
-    async fn register_move(
+    async fn register_player_move(
         &mut self,
         position: Position,
         player: PlayerColor,
-    ) -> Result<Option<GameEnd>, ()>
+    ) -> Result<Option<GameEnd>, Error>
     {
         let (current_player, other_player) = match player {
             PlayerColor::Black => (&self.black_player, &self.white_player),
@@ -95,40 +94,43 @@ where
         };
             
         if !current_player.ready {
-            let _ = current_player.client.notify_error("player hasn't declared to be ready").await;
-
-            println!("not ready");
-
-            Err(())
+            current_player.client.notify_error("player hasn't declared to be ready")
+                .await
+                .map_err(|error| Error::NotifyError { error, player })?;
         } else if player != self.turn_player {
-            let _ = current_player.client.notify_error("it isn't player turn").await;
-
-            println!("not turn");
-
-            Err(())
+            current_player.client.notify_error("it isn't player turn")
+                .await
+                .map_err(|error| Error::NotifyError { error, player })?;
         } else {
-            let _ = self.board.set_cell(position, player.into());
-
-            if self.board.check_win(position, player.into()) {
-                let _ = current_player.client.notify_end().await;
-                let _ = other_player.client.notify_end().await;
-
-                Ok(Some(GameEnd::Win(player)))
+            if let Err(e) = self.board.set_cell(position, player.into()) {
+                current_player.client.notify_error(&format!("{}", e))
+                    .await
+                    .map_err(|error| Error::NotifyError { error, player })?;
             } else {
-                let _ = other_player.client.notify_turn(position).await;
+                if self.board.check_win(position, player.into()) {
+                    current_player.client.notify_end().await
+                        .map_err(|error| Error::NotifyError { error, player })?;
+                    other_player.client.notify_end().await
+                        .map_err(|error| Error::NotifyError { error, player })?;
+    
+                    return Ok(Some(GameEnd::Win(player)));
+                } else {
+                    other_player.client.notify_turn(position).await
+                        .map_err(|error| Error::NotifyError { error, player })?;
 
-                self.turn_player.switch();
-
-                Ok(None)
+                    self.turn_player.switch();
+                }
             }
         }
+
+        Ok(None)
     }
 
-    async fn register_description(
+    async fn register_player_description(
         &mut self,
-        description: PlayerInformations,
+        description: PlayerDescription,
         player: PlayerColor,
-    ) -> Result<(), ()> {
+    ) -> Result<(), Error> {
         match player {
             PlayerColor::Black => self.black_player.infos = Some(description),
             PlayerColor::White => self.white_player.infos = Some(description),
@@ -142,7 +144,7 @@ where
         &mut self,
         content: String,
         player: PlayerColor,
-    ) -> Result<(), ()> {    
+    ) -> Result<(), Error> {    
         Ok(())
     }
 
@@ -151,7 +153,7 @@ where
         &mut self,
         content: String,
         player: PlayerColor,
-    ) -> Result<(), ()> {    
+    ) -> Result<(), Error> {    
         Ok(())
     }
 
@@ -160,7 +162,7 @@ where
         &mut self,
         content: String,
         player: PlayerColor,
-    ) -> Result<(), ()> {    
+    ) -> Result<(), Error> {    
         Ok(())
     }
 
@@ -169,7 +171,7 @@ where
         &mut self,
         content: String,
         player: PlayerColor,
-    ) -> Result<(), ()> {    
+    ) -> Result<(), Error> {    
         Ok(())
     }
 
@@ -178,7 +180,7 @@ where
         &mut self,
         position: Position,
         player: PlayerColor,
-    ) -> Result<(), ()> {
+    ) -> Result<(), Error> {
         Ok(())
     }
 }
@@ -189,33 +191,51 @@ where
 {
     async fn play(
         &mut self,
-    ) -> Result<GameEnd, PlayError>
+    ) -> Result<GameEnd, Error>
     {
-        let _ = self.black_player.client.notify_start(self.board.size).await;
-        let _ = self.white_player.client.notify_start(self.board.size).await;
-        let _ = self.black_player.client.notify_begin().await;
+        self.black_player.client.notify_start(self.board.size).await
+            .map_err(|error| Error::NotifyError { error, player: PlayerColor::Black })?;
+        self.white_player.client.notify_start(self.board.size).await
+            .map_err(|error| Error::NotifyError { error, player: PlayerColor::White })?;
+        self.black_player.client.notify_begin().await
+            .map_err(|error| Error::NotifyError { error, player: PlayerColor::Black })?;
+
 
         while let Some((player, action)) = self.actions_rx.recv().await {
             println!("received action: {:?} from player {:?}", action, player);
 
             let _ = match action {
-                PlayerAction::Ok => self.register_ok(player).await,
+                PlayerAction::Ok => {
+                    self.register_player_readiness(player).await?;
+                },
                 PlayerAction::Play(p) => {
-                    if let Some(end) = self.register_move(p, player).await.unwrap() {
+                    if let Some(end) = self.register_player_move(p, player).await? {
                         return Ok(end);
                     } else {
                         continue;
                     }
                 },
-                PlayerAction::Description(desc) => self.register_description(desc, player).await,
-                PlayerAction::Unknown(c) => self.register_unknown(c, player).await,
-                PlayerAction::Error(c) => self.register_error(c, player).await,
-                PlayerAction::Message(c) => self.register_message(c, player).await,
-                PlayerAction::Debug(c) => self.register_debug(c, player).await,
-                PlayerAction::Suggestion(p) => self.register_suggestion(p, player).await,
+                PlayerAction::Description(desc) => {
+                    self.register_player_description(desc, player).await?;
+                },
+                PlayerAction::Unknown(c) => {
+                    self.register_unknown(c, player).await?;
+                },
+                PlayerAction::Error(c) => {
+                    self.register_error(c, player).await?;
+                },
+                PlayerAction::Message(c) => {
+                    self.register_message(c, player).await?;
+                },
+                PlayerAction::Debug(c) => {
+                    self.register_debug(c, player).await?;
+                },
+                PlayerAction::Suggestion(p) => {
+                    self.register_suggestion(p, player).await?;
+                },
             };
         }
 
-        Err(PlayError::ActionsChannelAbruptlyClose)
+        Err(Error::ActionsChannelAbruptlyClose)
     }
 }
