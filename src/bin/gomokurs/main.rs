@@ -1,6 +1,6 @@
 use std::path::Path;
 use gomokurs::adapters::clients::Local;
-use gomokurs::domain::gomoku::Gomoku;
+use gomokurs::domain::gomoku::{Gomoku, models::BoardSize};
 use gomokurs::domain::game::Game;
 use gomokurs::domain::game_manager::{GameManager, GameManagerService};
 use std::sync::Arc;
@@ -11,7 +11,7 @@ async fn main() {
 
     let local_1 = Arc::new(Local::new(binary).await.unwrap());
     let local_2 = Arc::new(Local::new(binary).await.unwrap());
-    let gomoku = Gomoku::new(20);
+    let gomoku = Gomoku::new(BoardSize{ x: 20, y: 20 });
 
     let game = Game::new(local_1.clone(), local_2.clone(), gomoku);
 

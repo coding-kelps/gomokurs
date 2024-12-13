@@ -1,4 +1,4 @@
-use crate::domain::gomoku::models::Position;
+use crate::domain::gomoku::models::{Position, GameEnd};
 use crate::domain::game::models::{Error, PlayerColor, PlayerDescription};
 
 pub trait GameService
@@ -16,7 +16,7 @@ pub trait GameService
         &mut self,
         color: PlayerColor,
         position: Position,
-    ) -> impl std::future::Future<Output = Result<(), Error>>;
+    ) -> impl std::future::Future<Output = Result<Option<GameEnd>, Error>>;
 
     fn handle_description(
         &mut self,
