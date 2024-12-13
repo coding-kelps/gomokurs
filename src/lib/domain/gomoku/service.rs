@@ -1,6 +1,8 @@
 use crate::domain::gomoku::ports::GomokuService;
 use crate::domain::gomoku::models::{Board, PlayerColor, Position, GameEnd, Error};
 
+use super::models::BoardSize;
+
 pub struct Service
 {
     board: Board,
@@ -10,7 +12,7 @@ pub struct Service
 impl Service
 {
     pub fn new(
-        size: u8,
+        size: BoardSize,
     ) -> Self
     {
         Self {
@@ -22,6 +24,12 @@ impl Service
 
 impl GomokuService for Service
 {
+    async fn get_board_size(
+            &self,
+        ) -> BoardSize {
+        self.board.size
+    }
+
     async fn play_move(
         &mut self,
         color: PlayerColor,

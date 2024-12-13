@@ -1,5 +1,6 @@
 use crate::domain::game::ports::PlayerClient;
 pub use crate::domain::gomoku::models::{PlayerColor, Position};
+pub use crate::domain::game::models::Error as GameError;
 use std::sync::Arc;
 use std::collections::HashMap;
 use thiserror::Error;
@@ -102,11 +103,10 @@ impl fmt::Display for Information {
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("failed to notify `{color}`: `{error}`")]
-    NotifyError{
-        error: NotifyError,
-        color: PlayerColor,
-    },
+    #[error("actions' channel abruptly closed ")]
+    ChannelClosed,
+    #[error("game error: `{0}`")]
+    GameError(#[from] GameError),
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }
