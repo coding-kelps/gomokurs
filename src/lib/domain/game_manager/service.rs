@@ -44,6 +44,8 @@ where
         loop {
             tokio::select! {
                 Some((color, action)) = actions_rx.recv() => {
+                    tracing::debug!("received {:?} from {}", action, color);
+
                     match action {
                         PlayerAction::Ok => {                    
                             game.handle_ok(color).await?;
