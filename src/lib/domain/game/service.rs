@@ -74,12 +74,8 @@ where
                 .notify_error("player has already declared to be ready")
                 .await
                 .map_err(|error| Error::NotifyError { error, color: player.color })?;
-
-            // Send Err
         } else {
             player.ready = true;
-
-            // Send Ok
         }
 
         Ok(())
@@ -89,7 +85,7 @@ where
         &mut self,
         color: PlayerColor,
         position: Position,
-    ) -> Result<(), Error>
+    ) -> Result<Option<GameEnd>, Error>
     {         
         let (player, opponent_player) = match color {
             PlayerColor::Black => (&self.black_player, &self.white_player),
@@ -101,21 +97,27 @@ where
                 .notify_error("player has already declared to be ready")
                 .await
                 .map_err(|error| Error::NotifyError { error, color: player.color })?;
-
-            // Send Err
         } else {
-            if let Some(end) = self.gomoku.play_move(player.color, position).await.unwrap() /* Handle error */ {
-                if let GameEnd::Win(winning_player) = end {
-                    println!("{} won!", winning_player);
-                }
-            } else {
-                opponent_player.client.notify_turn(position).await; // Handle
+            match self.gomoku.play_move(player.color, position).await {
+                Ok(res) => {
+                    if let Some(end) = res {
+                        return Ok(Some(end));
+                    } else {
+                        opponent_player.client.notify_turn(position)
+                            .await
+                            .map_err(|error| Error::NotifyError { error, color: opponent_player.color })?;
+                    }
+                },
+                Err(e) => {
+                    player.client
+                        .notify_error(&e.to_string()) // There is surely a proper way to handle this
+                        .await
+                        .map_err(|error| Error::NotifyError { error, color: player.color })?;
+                },
             }
-
-            // Send Ok
         }
 
-        Ok(())
+        Ok(None)
     }
 
     async fn handle_description(

@@ -102,7 +102,7 @@ impl CheckRowAxis
 #[derive(Debug, Clone)]
 pub struct Board
 {
-    pub size: u8,
+    pub size: BoardSize,
     pub cells: Vec<Vec<CellStatus>>,
 }
 
@@ -114,20 +114,22 @@ pub enum SetCellError {
     #[error("index `{position}` out of bounds: `{size}`")]
     OutOfBounds {
         position: Position,
-        size: u8,
+        size: BoardSize,
     },
 }
+
+pub type BoardSize = Position;
 
 impl Board
 {
     pub fn new(
-        size: u8,
+        size: BoardSize,
     ) -> Self
     {
         Self {
             size: size,
-            cells: (0..size)
-                .map(|_| vec![CellStatus::Available; size as usize])
+            cells: (0..size.x)
+                .map(|_| vec![CellStatus::Available; size.y as usize])
                 .collect::<Vec<Vec<CellStatus>>>(),
         }
     }
@@ -138,7 +140,7 @@ impl Board
         new_status: CellStatus,
     ) -> Result<(), SetCellError>
     {
-        if position.x > self.size || position.y > self.size {
+        if position.x > self.size.x || position.y > self.size.y {
             return Err(SetCellError::OutOfBounds{position, size: self.size});
         } else if self.cells[position.x as usize][position.y as usize] != CellStatus::Available {
             return Err(SetCellError::UnavailableCell(position));
@@ -165,7 +167,7 @@ impl Board
                 y: (origin.y as i32 + (axis_vec.1 * i) as i32) as u8,
             };
 
-            if pos.x >= self.size || pos.y >= self.size
+            if pos.x >= self.size.x || pos.y >= self.size.y
             {
                 continue;
             } else {
