@@ -1,5 +1,5 @@
 use regex::{self, Regex};
-use crate::domain::game::models::{Position, PlayerInformations};
+use crate::domain::game::models::{Position, PlayerDescription};
 use thiserror::Error;
 use std::num::ParseIntError;
 use lazy_static::lazy_static;
@@ -35,13 +35,13 @@ pub fn parse_position(
 
 pub fn parse_player_informations(
     s: &str
-) -> PlayerInformations {
+) -> PlayerDescription {
     lazy_static! {
         static ref RE: Regex = Regex::new(r#"([\w\-\_]+="([^"]*)""#)
             .expect("About info regular expression failed to initiate itself!");
     }
 
-    PlayerInformations {
+    PlayerDescription {
         info: RE.captures_iter(s)
             .map(|caps| (caps[1].to_string(), caps[2].to_string()))
             .collect()
