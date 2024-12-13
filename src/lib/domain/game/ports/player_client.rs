@@ -1,11 +1,12 @@
-use crate::domain::game::models::*;
+use crate::domain::gomoku::models::{PlayerColor, Position};
+use crate::domain::game::models::{PlayerAction, RelativeTurn, Information, ListenError, NotifyError};
 use tokio::sync::mpsc::Sender;
 
 pub trait PlayerClient: Send + Sync + 'static {
     fn listen(
         &self,
         tx: Sender<(PlayerColor, PlayerAction)>,
-        player: PlayerColor,
+        color: PlayerColor,
     ) -> impl std::future::Future<Output = Result<(), ListenError>> + Send;
 
     fn notify_start(
