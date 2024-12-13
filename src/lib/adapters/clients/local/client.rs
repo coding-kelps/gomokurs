@@ -39,19 +39,19 @@ impl PlayerClient for Local {
     async fn notify_start(
         &self,
         size: u8,
-    ) -> Result<(), NotifyStartError>
+    ) -> Result<(), NotifyError>
     {
         let mut writer = self.writer.lock().await;
 
         writer
             .write_all(format!("START {}\n", size).as_bytes())
             .await
-            .map_err(|e| NotifyStartError::Unknown(anyhow!(e)))?;
+            .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
 
         writer
             .flush()
             .await
-            .map_err(|e| NotifyStartError::Unknown(anyhow!(e)))?;
+            .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
 
         Ok(())
     }
@@ -59,36 +59,36 @@ impl PlayerClient for Local {
     async fn notify_turn(
         &self,
         position: Position,
-    ) -> Result<(), NotifyTurnError>
+    ) -> Result<(), NotifyError>
     {
         let mut writer = self.writer.lock().await;
 
         writer
             .write_all(format!("TURN {}\n", position).as_bytes())
             .await
-            .map_err(|e| NotifyTurnError::Unknown(anyhow!(e)))?;
+            .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
 
         writer
             .flush()
             .await
-            .map_err(|e| NotifyTurnError::Unknown(anyhow!(e)))?;
+            .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
 
         Ok(())
     }
 
     async fn notify_begin(
         &self,
-    ) -> Result<(), NotifyBeginError>
+    ) -> Result<(), NotifyError>
     {
         let mut writer = self.writer.lock().await;
 
         writer.write_all(b"BEGIN\n")
             .await
-            .map_err(|e| NotifyBeginError::Unknown(anyhow!(e)))?;
+            .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
 
         writer.flush()
             .await
-            .map_err(|e| NotifyBeginError::Unknown(anyhow!(e)))?;
+            .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
 
         Ok(())
     }
@@ -96,23 +96,23 @@ impl PlayerClient for Local {
     async fn notify_board(
         &self,
         turns: Vec<RelativeTurn>,
-    ) -> Result<(), NotifyBoardError>
+    ) -> Result<(), NotifyError>
     {
         let mut writer = self.writer.lock().await;
 
         writer.write_all(b"BOARD\n")
             .await
-            .map_err(|e| NotifyBoardError::Unknown(anyhow!(e)))?;
+            .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
 
         for turn in turns {
             writer.write_all(format!("{}\n", turn).as_bytes())
                 .await
-                .map_err(|e| NotifyBoardError::Unknown(anyhow!(e)))?;
+                .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
         }
 
         writer.write_all(b"DONE\n")
             .await
-            .map_err(|e| NotifyBoardError::Unknown(anyhow!(e)))?;
+            .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
 
         Ok(())
     }
@@ -120,26 +120,26 @@ impl PlayerClient for Local {
     async fn notify_info(
         &self,
         info: Information,
-    ) -> Result<(), NotifyInfoError>
+    ) -> Result<(), NotifyError>
     {
         let mut writer = self.writer.lock().await;
 
         writer
             .write_all(format!("INFO {}\n", info).as_bytes())
             .await
-            .map_err(|e| NotifyInfoError::Unknown(anyhow!(e)))?;
+            .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
 
         writer
             .flush()
             .await
-            .map_err(|e| NotifyInfoError::Unknown(anyhow!(e)))?;
+            .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
 
         Ok(())
     }
 
     async fn notify_end(
         &self,
-    ) -> Result<(), NotifyEndError>
+    ) -> Result<(), NotifyError>
     {
         let mut writer = self.writer.lock().await;
 
@@ -150,7 +150,7 @@ impl PlayerClient for Local {
 
     async fn notify_about(
         &self,
-    ) -> Result<(), NotifyAboutError>
+    ) -> Result<(), NotifyError>
     {
         let mut writer = self.writer.lock().await;
 
@@ -162,7 +162,7 @@ impl PlayerClient for Local {
     async fn notify_unknown(
         &self,
         content: &str,
-    ) -> Result<(), NotifyUnknownError>
+    ) -> Result<(), NotifyError>
     {
         let mut writer = self.writer.lock().await;
 
@@ -174,7 +174,7 @@ impl PlayerClient for Local {
     async fn notify_error(
         &self,
         content: &str,
-    ) -> Result<(), NotifyErrorError>
+    ) -> Result<(), NotifyError>
     {
         let mut writer = self.writer.lock().await;
 

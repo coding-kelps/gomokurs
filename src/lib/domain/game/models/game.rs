@@ -51,7 +51,7 @@ impl fmt::Display for PlayerColor
 }
 
 #[derive(Debug, Clone)]
-pub struct PlayerInformations {
+pub struct PlayerDescription {
     pub info: HashMap<String, String>,
 }
 
