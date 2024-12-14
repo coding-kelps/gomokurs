@@ -1,42 +1,42 @@
-use crate::domain::game::ports::{GameService, PlayerClient};
+use crate::domain::game::ports::{GameService, PlayerNotifier};
 use crate::domain::game::models::*;
 use crate::domain::gomoku::models::GameEnd;
 use crate::domain::gomoku::GomokuService;
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
-pub struct Service<PC, GKS>
+pub struct Service<N, G>
 where
-    PC: PlayerClient,
-    GKS: GomokuService,
+    N: PlayerNotifier,
+    G: GomokuService,
 {
-    black_player: Player<PC>,
-    white_player: Player<PC>,
-    gomoku: GKS,
+    black_player: Player<N>,
+    white_player: Player<N>,
+    gomoku: G,
 }
 
-impl<PC, GKS> Service<PC, GKS>
+impl<N, G> Service<N, G>
 where
-    PC: PlayerClient,
-    GKS: GomokuService,
+    N: PlayerNotifier,
+    G: GomokuService,
 {
     pub fn new(
-        black_player_client: Arc<PC>,
-        white_player_client: Arc<PC>,
-        gomoku: GKS,
+        black_player_notifier: Arc<N>,
+        white_player_notifier: Arc<N>,
+        gomoku: G,
     ) -> Self {
         Self {
-            black_player: Player{ color: PlayerColor::Black, ready: false, description: None, client: black_player_client },
-            white_player: Player{ color: PlayerColor::White, ready: false, description: None, client: white_player_client },
+            black_player: Player{ color: PlayerColor::Black, ready: false, description: None, notifier: black_player_notifier },
+            white_player: Player{ color: PlayerColor::White, ready: false, description: None, notifier: white_player_notifier },
             gomoku,
         }
-}
+    }
 }
 
-impl<PC, GKS> GameService for Service<PC, GKS>
+impl<N, G> GameService for Service<N, G>
 where
-    PC: PlayerClient,
-    GKS: GomokuService,
+    N: PlayerNotifier,
+    G: GomokuService,
 {
     async fn init_game(
         &self,
@@ -44,16 +44,16 @@ where
     {
         let size = self.gomoku.get_board_size().await;
 
-        self.black_player.client
+        self.black_player.notifier
             .notify_start(size.x)
             .await
             .map_err(|error| Error::NotifyError { error, color: self.black_player.color })?;
-        self.white_player.client
+        self.white_player.notifier
             .notify_start(size.x)
             .await
             .map_err(|error| Error::NotifyError { error, color: self.white_player.color })?;
 
-        self.black_player.client
+        self.black_player.notifier
             .notify_begin()
             .await
             .map_err(|error| Error::NotifyError { error, color: self.black_player.color })?;
@@ -72,7 +72,7 @@ where
         };
 
         if player.ready {
-            player.client
+            player.notifier
                 .notify_error("player has already declared to be ready")
                 .await
                 .map_err(|error| Error::NotifyError { error, color: player.color })?;
@@ -95,7 +95,7 @@ where
         };
 
         if !player.ready {
-            player.client
+            player.notifier
                 .notify_error("player has already declared to be ready")
                 .await
                 .map_err(|error| Error::NotifyError { error, color: player.color })?;
@@ -105,13 +105,13 @@ where
                     if let Some(end) = res {
                         return Ok(Some(end));
                     } else {
-                        opponent_player.client.notify_turn(position)
+                        opponent_player.notifier.notify_turn(position)
                             .await
                             .map_err(|error| Error::NotifyError { error, color: opponent_player.color })?;
                     }
                 },
                 Err(e) => {
-                    player.client
+                    player.notifier
                         .notify_error(&e.to_string()) // There is surely a proper way to handle this
                         .await
                         .map_err(|error| Error::NotifyError { error, color: player.color })?;

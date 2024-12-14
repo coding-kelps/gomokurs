@@ -1,5 +1,5 @@
-use crate::domain::game_manager::ports::GameManagerService;
-use crate::domain::game::ports::{PlayerClient, GameService};
+use crate::domain::game_manager::ports::{GameManagerService, PlayerListener};
+use crate::domain::game::ports::{GameService, PlayerNotifier};
 use tokio::task::JoinSet;
 use tokio::sync::mpsc::channel;
 use crate::domain::game::models::{PlayerColor, PlayerAction};
@@ -20,16 +20,16 @@ impl Service
     }
 }
 
-impl<PC, GS> GameManagerService<PC, GS> for Service
+impl<C, G> GameManagerService<C, G> for Service
 where
-    PC: PlayerClient,
-    GS: GameService,
+    C: PlayerListener + PlayerNotifier,
+    G: GameService,
 {
     async fn run(
         &mut self,
-        black_client: Arc<PC>,
-        white_client: Arc<PC>,
-        mut game: GS,
+        black_client: Arc<C>,
+        white_client: Arc<C>,
+        mut game: G,
     ) -> Result<GameEnd, Error>
     {
         let (actions_tx_black, mut actions_rx) = channel::<(PlayerColor, PlayerAction)>(100);
