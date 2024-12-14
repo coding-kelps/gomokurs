@@ -1,23 +1,10 @@
-use crate::domain::game::ports::PlayerClient;
 pub use crate::domain::gomoku::models::{PlayerColor, Position};
-pub use crate::domain::game::models::{Error as GameError, ListenError};
+pub use crate::domain::game::models::Error as GameError;
 use tokio::task::JoinError;
-use std::sync::Arc;
 use std::collections::HashMap;
 use thiserror::Error;
 use std::path::PathBuf;
 use std::fmt;
-
-#[derive(Debug, Clone)]
-pub struct Player<PC>
-where
-    PC: PlayerClient
-{
-    pub color: PlayerColor,
-    pub client: Arc<PC>,
-    pub ready: bool,
-    pub description: Option<PlayerDescription>,
-}
 
 #[derive(Debug, Clone)]
 pub enum PlayerAction {
@@ -112,6 +99,12 @@ pub enum Error {
     ListenError(#[from] ListenError), 
     #[error("game error: `{0}`")]
     GameError(#[from] GameError),
+    #[error(transparent)]
+    Unknown(#[from] anyhow::Error),
+}
+
+#[derive(Debug, Error)]
+pub enum ListenError {
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }

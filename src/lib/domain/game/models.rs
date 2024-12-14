@@ -1,5 +1,5 @@
 pub use crate::domain::gomoku::models::{PlayerColor, Position};
-use crate::domain::game::ports::PlayerClient;
+use crate::domain::game::ports::PlayerNotifier;
 use std::collections::HashMap;
 use thiserror::Error;
 use std::path::PathBuf;
@@ -7,14 +7,14 @@ use std::fmt;
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
-pub struct Player<PC>
+pub struct Player<N>
 where
-    PC: PlayerClient
+    N: PlayerNotifier
 {
     pub color: PlayerColor,
     pub ready: bool,
     pub description: Option<PlayerDescription>,
-    pub client: Arc<PC>,
+    pub notifier: Arc<N>,
 }
 
 #[derive(Debug, Clone)]
@@ -107,13 +107,6 @@ pub enum Error {
         error: NotifyError,
         color: PlayerColor,
     },
-    #[error(transparent)]
-    Unknown(#[from] anyhow::Error),
-}
-
-// PlayerClient's errors
-#[derive(Debug, Error)]
-pub enum ListenError {
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }
