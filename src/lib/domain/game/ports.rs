@@ -1,5 +1,5 @@
 mod service;
-mod player_client;
+mod player_notifier;
 
 pub use service::*;
-pub use player_client::*;
+pub use player_notifier::*;
