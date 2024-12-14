@@ -42,12 +42,14 @@ where
         &self,
     ) -> Result<(), Error>
     {
+        let size = self.gomoku.get_board_size().await;
+
         self.black_player.client
-            .notify_start(20)
+            .notify_start(size.x)
             .await
             .map_err(|error| Error::NotifyError { error, color: self.black_player.color })?;
         self.white_player.client
-            .notify_start(20)
+            .notify_start(size.x)
             .await
             .map_err(|error| Error::NotifyError { error, color: self.white_player.color })?;
 
