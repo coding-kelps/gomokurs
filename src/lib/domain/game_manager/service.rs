@@ -32,8 +32,8 @@ where
         mut game: G,
     ) -> Result<GameEnd, Error>
     {
-        let (actions_tx_black, mut actions_rx) = channel::<(PlayerColor, PlayerAction)>(100);
-        let actions_tx_white = actions_tx_black.clone();
+        let (actions_tx, mut actions_rx) = channel::<(PlayerColor, PlayerAction)>(100);
+        let (actions_tx_black, actions_tx_white) = (actions_tx.clone(), actions_tx.clone());
         
         let mut listeners = JoinSet::new();
         listeners.spawn(async move { black_client.listen(actions_tx_black, PlayerColor::Black).await });
