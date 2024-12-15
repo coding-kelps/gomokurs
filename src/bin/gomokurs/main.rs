@@ -2,7 +2,7 @@ use std::path::Path;
 use gomokurs::adapters::clients::Local;
 use gomokurs::domain::board_state_manager::{BoardStateManager, models::BoardSize};
 use gomokurs::domain::game::Game;
-use gomokurs::domain::game_manager::{GameManager, GameManagerService};
+use gomokurs::domain::players_interface::{GameManager, PlayersInterfaceService};
 use std::sync::Arc;
 
 #[tokio::main]
