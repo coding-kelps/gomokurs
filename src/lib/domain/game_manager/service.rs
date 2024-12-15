@@ -1,5 +1,5 @@
-use crate::domain::game::ports::{GameService, PlayerNotifier};
-use crate::domain::game::models::*;
+use crate::domain::game_manager::ports::{GameManagerService, PlayerNotifier};
+use crate::domain::game_manager::models::*;
 use crate::domain::board_state_manager::models::GameEnd;
 use crate::domain::board_state_manager::BoardStateManagerService;
 use std::sync::Arc;
@@ -33,7 +33,7 @@ where
     }
 }
 
-impl<N, B> GameService for Service<N, B>
+impl<N, B> GameManagerService for Service<N, B>
 where
     N: PlayerNotifier,
     B: BoardStateManagerService,

@@ -1,5 +1,5 @@
 pub use crate::domain::board_state_manager::models::{PlayerColor, Position};
-use crate::domain::game::ports::PlayerNotifier;
+use crate::domain::game_manager::ports::PlayerNotifier;
 use std::collections::HashMap;
 use thiserror::Error;
 use std::path::PathBuf;
