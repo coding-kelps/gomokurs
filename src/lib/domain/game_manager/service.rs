@@ -137,48 +137,53 @@ where
         Ok(())
     }
 
-    #[allow(unused_variables)]
     async fn handle_unknown(
         &self,
         color: PlayerColor,
         content: String,
-    ) -> Result<(), Error> {    
+    ) -> Result<(), Error> {
+        tracing::error!("{} send unknown error: \"{}\"", color, content);
+
         Ok(())
     }
 
-    #[allow(unused_variables)]
     async fn handle_error(
         &self,
         color: PlayerColor,
         content: String,
     ) -> Result<(), Error> {    
+        tracing::error!("{} send error: \"{}\"", color, content);
+
         Ok(())
     }
 
-    #[allow(unused_variables)]
     async fn handle_message(
         &self,
         color: PlayerColor,
         content: String,
-    ) -> Result<(), Error> {    
+    ) -> Result<(), Error> {
+        tracing::error!("{} send message: \"{}\"", color, content);
+  
         Ok(())
     }
 
-    #[allow(unused_variables)]
     async fn handle_debug(
         &self,
         color: PlayerColor,
         content: String,
     ) -> Result<(), Error> {    
+        tracing::error!("{} send debug: \"{}\"", color, content);
+
         Ok(())
     }
 
-    #[allow(unused_variables)]
     async fn handle_suggestion(
         &self,
         color: PlayerColor,
         position: Position,
     ) -> Result<(), Error> {
+        tracing::error!("{} send suggestion: \"{}\"", color, position);
+
         Ok(())
     }
 }
