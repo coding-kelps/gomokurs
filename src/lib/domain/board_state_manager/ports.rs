@@ -1,8 +1,8 @@
-use crate::domain::gomoku::models::{PlayerColor, Position, BoardSize, GameEnd, Error};
+use crate::domain::board_state_manager::models::{PlayerColor, Position, BoardSize, GameEnd, Error};
 
-pub trait GomokuService
+pub trait BoardStateManagerService
 {
-    fn get_board_size(
+    fn get_size(
         &self,
     ) -> impl std::future::Future<Output = BoardSize>;
 

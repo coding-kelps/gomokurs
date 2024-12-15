@@ -3,7 +3,7 @@ use crate::domain::game::ports::{GameService, PlayerNotifier};
 use tokio::task::JoinSet;
 use tokio::sync::mpsc::channel;
 use crate::domain::game::models::{PlayerColor, PlayerAction};
-use crate::domain::gomoku::models::GameEnd;
+use crate::domain::board_state_manager::models::GameEnd;
 use crate::domain::game_manager::models::Error;
 use std::sync::Arc;
 

@@ -1,48 +1,48 @@
 use crate::domain::game::ports::{GameService, PlayerNotifier};
 use crate::domain::game::models::*;
-use crate::domain::gomoku::models::GameEnd;
-use crate::domain::gomoku::GomokuService;
+use crate::domain::board_state_manager::models::GameEnd;
+use crate::domain::board_state_manager::BoardStateManagerService;
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
-pub struct Service<N, G>
+pub struct Service<N, B>
 where
     N: PlayerNotifier,
-    G: GomokuService,
+    B: BoardStateManagerService,
 {
     black_player: Player<N>,
     white_player: Player<N>,
-    gomoku: G,
+    board: B,
 }
 
-impl<N, G> Service<N, G>
+impl<N, B> Service<N, B>
 where
     N: PlayerNotifier,
-    G: GomokuService,
+    B: BoardStateManagerService,
 {
     pub fn new(
         black_player_notifier: Arc<N>,
         white_player_notifier: Arc<N>,
-        gomoku: G,
+        board: B,
     ) -> Self {
         Self {
             black_player: Player{ color: PlayerColor::Black, ready: false, description: None, notifier: black_player_notifier },
             white_player: Player{ color: PlayerColor::White, ready: false, description: None, notifier: white_player_notifier },
-            gomoku,
+            board,
         }
     }
 }
 
-impl<N, G> GameService for Service<N, G>
+impl<N, B> GameService for Service<N, B>
 where
     N: PlayerNotifier,
-    G: GomokuService,
+    B: BoardStateManagerService,
 {
     async fn init_game(
         &self,
     ) -> Result<(), Error>
     {
-        let size = self.gomoku.get_board_size().await;
+        let size = self.board.get_size().await;
 
         self.black_player.notifier
             .notify_start(size.x)
@@ -100,7 +100,7 @@ where
                 .await
                 .map_err(|error| Error::NotifyError { error, color: player.color })?;
         } else {
-            match self.gomoku.play_move(player.color, position).await {
+            match self.board.play_move(player.color, position).await {
                 Ok(res) => {
                     if let Some(end) = res {
                         return Ok(Some(end));
