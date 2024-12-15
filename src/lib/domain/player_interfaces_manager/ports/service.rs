@@ -1,11 +1,11 @@
 use crate::domain::board_state_manager::models::GameEnd;
 use crate::domain::game_manager::ports::GameManagerService;
-use crate::domain::players_interface::ports::PlayerListener;
+use crate::domain::player_interfaces_manager::ports::PlayerListener;
 use crate::domain::game_manager::ports::PlayerNotifier;
-use crate::domain::players_interface::models::Error;
+use crate::domain::player_interfaces_manager::models::Error;
 use std::sync::Arc;
 
-pub trait PlayersInterfaceService<C, G>
+pub trait PlayerInterfacesManagerService<C, G>
 where
     C: PlayerListener + PlayerNotifier,
     G: GameManagerService,
