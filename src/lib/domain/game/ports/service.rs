@@ -1,4 +1,4 @@
-use crate::domain::gomoku::models::{Position, GameEnd};
+use crate::domain::board_state_manager::models::{Position, GameEnd};
 use crate::domain::game::models::{Error, PlayerColor, PlayerDescription};
 
 pub trait GameService

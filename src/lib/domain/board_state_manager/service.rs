@@ -1,5 +1,5 @@
-use crate::domain::gomoku::ports::GomokuService;
-use crate::domain::gomoku::models::{Board, PlayerColor, Position, GameEnd, Error};
+use crate::domain::board_state_manager::ports::BoardStateManagerService;
+use crate::domain::board_state_manager::models::{Board, PlayerColor, Position, GameEnd, Error};
 
 use super::models::BoardSize;
 
@@ -22,9 +22,9 @@ impl Service
     }
 }
 
-impl GomokuService for Service
+impl BoardStateManagerService for Service
 {
-    async fn get_board_size(
+    async fn get_size(
             &self,
         ) -> BoardSize {
         self.board.size

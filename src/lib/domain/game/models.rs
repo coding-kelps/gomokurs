@@ -1,4 +1,4 @@
-pub use crate::domain::gomoku::models::{PlayerColor, Position};
+pub use crate::domain::board_state_manager::models::{PlayerColor, Position};
 use crate::domain::game::ports::PlayerNotifier;
 use std::collections::HashMap;
 use thiserror::Error;

@@ -1,4 +1,4 @@
-use crate::domain::gomoku::models::GameEnd;
+use crate::domain::board_state_manager::models::GameEnd;
 use crate::domain::game::ports::GameService;
 use crate::domain::game_manager::ports::PlayerListener;
 use crate::domain::game::ports::PlayerNotifier;

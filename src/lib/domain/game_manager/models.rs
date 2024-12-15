@@ -1,4 +1,4 @@
-pub use crate::domain::gomoku::models::{PlayerColor, Position};
+pub use crate::domain::board_state_manager::models::{PlayerColor, Position};
 pub use crate::domain::game::models::Error as GameError;
 use tokio::task::JoinError;
 use std::collections::HashMap;
