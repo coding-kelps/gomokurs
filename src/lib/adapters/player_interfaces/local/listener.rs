@@ -1,4 +1,4 @@
-use crate::adapters::clients::local::Local;
+use crate::adapters::player_interfaces::local::Local;
 use crate::domain::player_interfaces_manager::ports::PlayerListener;
 use crate::domain::player_interfaces_manager::models::ListenError;
 use crate::domain::game_manager::models::{PlayerColor, PlayerAction};
@@ -7,7 +7,7 @@ use anyhow::anyhow;
 use lazy_static::lazy_static;
 use regex::Regex;
 use thiserror::Error;
-use crate::adapters::clients::local::parsers::*;
+use crate::adapters::player_interfaces::local::parsers::*;
 
 impl PlayerListener for Local {
     async fn listen(
