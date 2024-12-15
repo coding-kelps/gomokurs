@@ -1,5 +1,5 @@
 use crate::domain::game_manager::models::{PlayerColor, PlayerAction};
-use crate::domain::players_interface::models::ListenError;
+use crate::domain::player_interfaces_manager::models::ListenError;
 use tokio::sync::mpsc::Sender;
 
 pub trait PlayerListener: Send + Sync + 'static {
