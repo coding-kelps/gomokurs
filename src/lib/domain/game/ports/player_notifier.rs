@@ -1,4 +1,4 @@
-use crate::domain::gomoku::models::Position;
+use crate::domain::board_state_manager::models::Position;
 use crate::domain::game::models::{RelativeTurn, Information, NotifyError};
 
 pub trait PlayerNotifier: Send + Sync + 'static {
