@@ -1,5 +1,5 @@
 use crate::domain::board_state_manager::models::Position;
-use crate::domain::game::models::{RelativeTurn, Information, NotifyError};
+use crate::domain::game_manager::models::{RelativeTurn, Information, NotifyError};
 
 pub trait PlayerNotifier: Send + Sync + 'static {
     fn notify_start(

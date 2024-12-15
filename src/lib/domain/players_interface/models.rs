@@ -1,5 +1,5 @@
 pub use crate::domain::board_state_manager::models::{PlayerColor, Position};
-pub use crate::domain::game::models::Error as GameError;
+pub use crate::domain::game_manager::models::Error as GameManagerError;
 use tokio::task::JoinError;
 use std::collections::HashMap;
 use thiserror::Error;
@@ -98,7 +98,7 @@ pub enum Error {
     #[error("listener error: `{0}`")]
     ListenError(#[from] ListenError), 
     #[error("game error: `{0}`")]
-    GameError(#[from] GameError),
+    GameError(#[from] GameManagerError),
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }

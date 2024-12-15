@@ -1,8 +1,8 @@
 use std::path::Path;
 use gomokurs::adapters::clients::Local;
 use gomokurs::domain::board_state_manager::{BoardStateManager, models::BoardSize};
-use gomokurs::domain::game::Game;
-use gomokurs::domain::players_interface::{GameManager, PlayersInterfaceService};
+use gomokurs::domain::game_manager::GameManager;
+use gomokurs::domain::players_interface::{PlayersInterface, PlayersInterfaceService};
 use std::sync::Arc;
 
 #[tokio::main]
@@ -16,9 +16,9 @@ async fn main() {
     let local_2 = Arc::new(Local::new(binary).await.unwrap());
     let gomoku = BoardStateManager::new(BoardSize{ x: 20, y: 20 });
 
-    let game = Game::new(local_1.clone(), local_2.clone(), gomoku);
+    let game = GameManager::new(local_1.clone(), local_2.clone(), gomoku);
 
-    let mut game_manager = GameManager::new();
+    let mut players_interface = PlayersInterface::new();
 
-    let _ = game_manager.run(local_1, local_2, game).await;
+    let _ = players_interface.run(local_1, local_2, game).await;
 }

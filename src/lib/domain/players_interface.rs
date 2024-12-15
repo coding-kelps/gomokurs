@@ -3,4 +3,4 @@ pub mod ports;
 pub mod service;
 
 pub use ports::PlayersInterfaceService;
-pub use service::Service as GameManager;
+pub use service::Service as PlayersInterface;

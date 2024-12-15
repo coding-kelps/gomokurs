@@ -1,8 +1,8 @@
 use crate::domain::players_interface::ports::{PlayersInterfaceService, PlayerListener};
-use crate::domain::game::ports::{GameService, PlayerNotifier};
+use crate::domain::game_manager::ports::{GameManagerService, PlayerNotifier};
 use tokio::task::JoinSet;
 use tokio::sync::mpsc::channel;
-use crate::domain::game::models::{PlayerColor, PlayerAction};
+use crate::domain::game_manager::models::{PlayerColor, PlayerAction};
 use crate::domain::board_state_manager::models::GameEnd;
 use crate::domain::players_interface::models::Error;
 use std::sync::Arc;
@@ -23,7 +23,7 @@ impl Service
 impl<C, G> PlayersInterfaceService<C, G> for Service
 where
     C: PlayerListener + PlayerNotifier,
-    G: GameService,
+    G: GameManagerService,
 {
     async fn run(
         &mut self,

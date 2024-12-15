@@ -1,4 +1,4 @@
-use crate::domain::game::models::{PlayerColor, PlayerAction};
+use crate::domain::game_manager::models::{PlayerColor, PlayerAction};
 use crate::domain::players_interface::models::ListenError;
 use tokio::sync::mpsc::Sender;
 
