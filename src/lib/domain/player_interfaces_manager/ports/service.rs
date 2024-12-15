@@ -5,15 +5,15 @@ use crate::domain::game_manager::ports::PlayerNotifier;
 use crate::domain::player_interfaces_manager::models::Error;
 use std::sync::Arc;
 
-pub trait PlayerInterfacesManagerService<C, G>
+pub trait PlayerInterfacesManagerService<I, G>
 where
-    C: PlayerListener + PlayerNotifier,
+    I: PlayerListener + PlayerNotifier,
     G: GameManagerService,
 {
     fn run(
         &mut self,
-        black_client: Arc<C>,
-        white_client: Arc<C>,
+        black_interface: Arc<I>,
+        white_interface: Arc<I>,
         game_manager: G,
     ) -> impl std::future::Future<Output = Result<GameEnd, Error>>;
 }

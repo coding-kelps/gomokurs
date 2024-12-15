@@ -20,15 +20,15 @@ impl Service
     }
 }
 
-impl<C, G> PlayerInterfacesManagerService<C, G> for Service
+impl<I, G> PlayerInterfacesManagerService<I, G> for Service
 where
-    C: PlayerListener + PlayerNotifier,
+    I: PlayerListener + PlayerNotifier,
     G: GameManagerService,
 {
     async fn run(
         &mut self,
-        black_client: Arc<C>,
-        white_client: Arc<C>,
+        black_interface: Arc<I>,
+        white_interface: Arc<I>,
         mut game: G,
     ) -> Result<GameEnd, Error>
     {
@@ -36,8 +36,8 @@ where
         let (actions_tx_black, actions_tx_white) = (actions_tx.clone(), actions_tx.clone());
         
         let mut listeners = JoinSet::new();
-        listeners.spawn(async move { black_client.listen(actions_tx_black, PlayerColor::Black).await });
-        listeners.spawn(async move { white_client.listen(actions_tx_white, PlayerColor::White).await });
+        listeners.spawn(async move { black_interface.listen(actions_tx_black, PlayerColor::Black).await });
+        listeners.spawn(async move { white_interface.listen(actions_tx_white, PlayerColor::White).await });
         
         game.init_game().await?;
 

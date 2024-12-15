@@ -1,5 +1,5 @@
 use std::path::Path;
-use gomokurs::adapters::clients::Local;
+use gomokurs::adapters::player_interfaces::Local;
 use gomokurs::domain::board_state_manager::{BoardStateManager, models::BoardSize};
 use gomokurs::domain::game_manager::GameManager;
 use gomokurs::domain::player_interfaces_manager::{PlayerInterfacesManager, PlayerInterfacesManagerService};
