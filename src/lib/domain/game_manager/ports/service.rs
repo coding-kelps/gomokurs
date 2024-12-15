@@ -1,7 +1,7 @@
 use crate::domain::board_state_manager::models::{Position, GameEnd};
-use crate::domain::game::models::{Error, PlayerColor, PlayerDescription};
+use crate::domain::game_manager::models::{Error, PlayerColor, PlayerDescription};
 
-pub trait GameService
+pub trait GameManagerService
 {
     fn init_game(
         &self,
