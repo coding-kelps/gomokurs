@@ -1,10 +1,10 @@
-use crate::domain::game_manager::ports::{GameManagerService, PlayerListener};
+use crate::domain::players_interface::ports::{PlayersInterfaceService, PlayerListener};
 use crate::domain::game::ports::{GameService, PlayerNotifier};
 use tokio::task::JoinSet;
 use tokio::sync::mpsc::channel;
 use crate::domain::game::models::{PlayerColor, PlayerAction};
 use crate::domain::board_state_manager::models::GameEnd;
-use crate::domain::game_manager::models::Error;
+use crate::domain::players_interface::models::Error;
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
@@ -20,7 +20,7 @@ impl Service
     }
 }
 
-impl<C, G> GameManagerService<C, G> for Service
+impl<C, G> PlayersInterfaceService<C, G> for Service
 where
     C: PlayerListener + PlayerNotifier,
     G: GameService,

@@ -1,6 +1,6 @@
 use crate::adapters::clients::local::Local;
-use crate::domain::game_manager::ports::PlayerListener;
-use crate::domain::game_manager::models::ListenError;
+use crate::domain::players_interface::ports::PlayerListener;
+use crate::domain::players_interface::models::ListenError;
 use crate::domain::game::models::{PlayerColor, PlayerAction};
 use tokio::sync::mpsc::Sender;
 use anyhow::anyhow;
