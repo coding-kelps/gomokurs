@@ -3,6 +3,7 @@ use crate::domain::game_manager::models::*;
 use crate::domain::board_state_manager::models::GameEnd;
 use crate::domain::board_state_manager::BoardStateManagerService;
 use std::sync::Arc;
+use tokio::time::Duration;
 
 #[derive(Debug, Clone)]
 pub struct Service<N, B>
@@ -24,10 +25,12 @@ where
         black_player_notifier: Arc<N>,
         white_player_notifier: Arc<N>,
         board: B,
+        turn_duration: Duration,
+        match_duration: Duration,
     ) -> Self {
         Self {
-            black_player: Player{ color: PlayerColor::Black, ready: false, description: None, notifier: black_player_notifier },
-            white_player: Player{ color: PlayerColor::White, ready: false, description: None, notifier: white_player_notifier },
+            black_player: Player::new(PlayerColor::Black, black_player_notifier, turn_duration, match_duration),
+            white_player: Player::new(PlayerColor::White, white_player_notifier, turn_duration, match_duration),
             board,
         }
     }
@@ -59,6 +62,20 @@ where
             .map_err(|error| Error::NotifyError { error, color: self.black_player.color })?;
 
         Ok(())
+    }
+
+    async fn run_timers(
+        &self,
+    ) -> Result<GameEnd, Error>
+    {
+        tokio::select! {
+            _ = self.black_player.timer.run(false) => {
+                Ok(GameEnd::Win(PlayerColor::White))
+            },
+            _ = self.white_player.timer.run(false) => {
+                Ok(GameEnd::Win(PlayerColor::Black))
+            },
+        }
     }
 
     async fn handle_ok(
@@ -108,6 +125,9 @@ where
                         opponent_player.notifier.notify_turn(position)
                             .await
                             .map_err(|error| Error::NotifyError { error, color: opponent_player.color })?;
+
+                        player.timer.pause().await;
+                        opponent_player.timer.pause().await;
                     }
                 },
                 Err(e) => {
