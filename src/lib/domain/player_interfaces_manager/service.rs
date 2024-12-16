@@ -75,6 +75,16 @@ where
                         },
                     }
                 },
+                res = game.run_timers() => {
+                    match res {
+                        Ok(end) => {
+                            println!("too soon");
+
+                            return Ok(end)
+                        },
+                        Err(e) => return Err(e.into()),
+                    }
+                },
                 Some(res) = listeners.join_next() => {
                     match res {
                         Err(e) => return Err(e.into()),

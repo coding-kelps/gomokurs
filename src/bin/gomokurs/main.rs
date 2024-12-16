@@ -4,6 +4,7 @@ use gomokurs::domain::board_state_manager::{BoardStateManager, models::BoardSize
 use gomokurs::domain::game_manager::GameManager;
 use gomokurs::domain::player_interfaces_manager::{PlayerInterfacesManager, PlayerInterfacesManagerService};
 use std::sync::Arc;
+use tokio::time::Duration;
 
 #[tokio::main]
 async fn main() {
@@ -16,7 +17,7 @@ async fn main() {
     let local_2 = Arc::new(Local::new(binary).await.unwrap());
     let gomoku = BoardStateManager::new(BoardSize{ x: 20, y: 20 });
 
-    let game = GameManager::new(local_1.clone(), local_2.clone(), gomoku);
+    let game = GameManager::new(local_1.clone(), local_2.clone(), gomoku, Duration::from_secs(30), Duration::from_secs(180));
 
     let mut players_interface = PlayerInterfacesManager::new();
 
