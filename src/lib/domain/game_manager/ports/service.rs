@@ -7,6 +7,10 @@ pub trait GameManagerService
         &self,
     ) -> impl std::future::Future<Output = Result<(), Error>>;
 
+    fn run_timers(
+        &self,
+    ) -> impl std::future::Future<Output = Result<GameEnd, Error>>;
+
     fn handle_ok(
         &mut self,
         color: PlayerColor,
