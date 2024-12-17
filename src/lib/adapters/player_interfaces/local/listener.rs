@@ -12,8 +12,8 @@ use crate::adapters::player_interfaces::local::parsers::*;
 impl PlayerListener for Local {
     async fn listen(
         &self,
-        tx: Sender<(PlayerColor, PlayerAction)>,
         player: PlayerColor,
+        tx: Sender<(PlayerColor, PlayerAction)>,
     ) -> Result<(), ListenError> {
         loop {
             let line = {
