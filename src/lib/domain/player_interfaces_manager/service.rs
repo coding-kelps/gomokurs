@@ -36,8 +36,8 @@ where
         let (actions_tx_black, actions_tx_white) = (actions_tx.clone(), actions_tx.clone());
         
         let mut listeners = JoinSet::new();
-        listeners.spawn(async move { black_interface.listen(actions_tx_black, PlayerColor::Black).await });
-        listeners.spawn(async move { white_interface.listen(actions_tx_white, PlayerColor::White).await });
+        listeners.spawn(async move { black_interface.listen(PlayerColor::Black, actions_tx_black).await });
+        listeners.spawn(async move { white_interface.listen(PlayerColor::White, actions_tx_white).await });
         
         game.init_game().await?;
 
