@@ -1,3 +1,5 @@
+//! An implementation of the player interfaces manager service.
+
 use crate::domain::player_interfaces_manager::ports::{PlayerInterfacesManagerService, PlayerListener};
 use crate::domain::game_manager::ports::{GameManagerService, PlayerNotifier};
 use tokio::task::JoinSet;
@@ -7,6 +9,7 @@ use crate::domain::board_state_manager::models::GameEnd;
 use crate::domain::player_interfaces_manager::models::Error;
 use std::sync::Arc;
 
+/// An implementation of the player interfaces manager service.
 #[derive(Debug, Clone)]
 pub struct Service
 {
@@ -25,6 +28,17 @@ where
     I: PlayerListener + PlayerNotifier,
     G: GameManagerService,
 {
+    /// Run a game from a given game_manager, coordinating both white and black
+    /// players interface concurrent inputs for the game manager, eventually
+    /// returns the game ending.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `black_interface` - An Arc to a player interface of what will be
+    /// considered the black player during the game.
+    /// * `white_interface` - An Arc to a player interface of what will be
+    /// considered the white player during the game.
+    /// * `game_manager` - A game manager
     async fn run(
         &mut self,
         black_interface: Arc<I>,
@@ -35,6 +49,7 @@ where
         let (actions_tx, mut actions_rx) = channel::<(PlayerColor, PlayerAction)>(100);
         let (actions_tx_black, actions_tx_white) = (actions_tx.clone(), actions_tx.clone());
         
+        // Start listening to players.
         let mut listeners = JoinSet::new();
         listeners.spawn(async move { black_interface.listen(PlayerColor::Black, actions_tx_black).await });
         listeners.spawn(async move { white_interface.listen(PlayerColor::White, actions_tx_white).await });
@@ -78,8 +93,6 @@ where
                 res = game.run_timers() => {
                     match res {
                         Ok(end) => {
-                            println!("too soon");
-
                             return Ok(end)
                         },
                         Err(e) => return Err(e.into()),
