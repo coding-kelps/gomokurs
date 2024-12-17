@@ -2,6 +2,7 @@ use std::fmt;
 use std::hash::Hash;
 use thiserror::Error;
 
+/// A player color (either black or white).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PlayerColor {
     Black,
@@ -10,6 +11,7 @@ pub enum PlayerColor {
 
 impl PlayerColor
 {
+    /// Returns the opposite color.
     pub fn other(&self) -> PlayerColor
     {
         match self {
@@ -18,6 +20,7 @@ impl PlayerColor
         }
     }
 
+    /// Change current value of player color for the opposite one.
     pub fn switch(&mut self)
     {
         *self = match *self {
@@ -48,6 +51,7 @@ impl fmt::Display for PlayerColor
     }
 }
 
+/// A 2D coordinates to describe a position on the board.
 #[derive(Clone, Debug, PartialEq, Eq, Copy)]
 pub struct Position {
     pub x: u8,
@@ -69,11 +73,15 @@ impl fmt::Display for Position {
     }
 }
 
+/// An enum describing a Board cell status.
 #[derive(Clone, Debug, PartialEq, Eq, Copy)]
 pub enum CellStatus
 {
+    /// No stone, the cell is available.
     Available,
+    // A black stone has been played on this cell.
     Black,
+    // A white stone has been played on this cell.
     White,
 }
 
@@ -99,18 +107,23 @@ impl CheckRowAxis
     }
 }
 
+/// The gomoku board.
 #[derive(Debug, Clone)]
 pub struct Board
 {
+    /// The size of the board.
     pub size: BoardSize,
+    /// The cells of the board of a 2D vector.
     pub cells: Vec<Vec<CellStatus>>,
 }
 
+/// An error when the setting of a board cell status failed.
 #[derive(Debug, Error)]
 pub enum SetCellError {
+    /// When the cell wasn't available.
     #[error("index `{0}` points to unavailable cell")]
     UnavailableCell(Position),
-
+    /// When the cell coordinates were out of bounds.
     #[error("index `{position}` out of bounds: `{size}`")]
     OutOfBounds {
         position: Position,
@@ -118,10 +131,12 @@ pub enum SetCellError {
     },
 }
 
+/// The 2D size of a Board.
 pub type BoardSize = Position;
 
 impl Board
 {
+    /// Instantiate a new [`Board`] from a given size.
     pub fn new(
         size: BoardSize,
     ) -> Self
@@ -134,6 +149,7 @@ impl Board
         }
     }
 
+    /// Set a given cell from the board at a status. 
     pub fn set_cell(
         &mut self,
         position: Position,
@@ -151,6 +167,7 @@ impl Board
         Ok(())
     }
 
+    /// Check if a row contains five of a given status in a row. 
     fn check_row(
         &self,
         origin: Position,
@@ -186,6 +203,7 @@ impl Board
         false
     }
 
+    /// Check for a player win in the board from the last move.
     pub fn check_win(
         &self,
         last_move: Position,
@@ -238,18 +256,26 @@ impl fmt::Display for Board
     }
 }
 
+/// An gomoku match ending.
 #[derive(Debug, Clone, Copy)]
 pub enum GameEnd {
+    /// A Player won.
     Win(PlayerColor),
+    /// Draw, no player won.
     Draw,
 }
 
+/// An error returned by the board state manager.
 #[derive(Debug, Error)]
 pub enum Error {
+    /// An error returned when a player tried to player while it was not the
+    /// player turn to play.
     #[error("it is not `{0}` turn")]
     NotPlayerTurn(PlayerColor),
+    /// An error when a cell status setting failed.
     #[error("set cell error: `{0}`")]
     SetCellError(#[from] SetCellError),
+    /// An implementation specific error.
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }

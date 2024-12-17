@@ -7,7 +7,11 @@ use crate::domain::game_manager::models::{PlayerColor, PlayerAction};
 use crate::domain::player_interfaces_manager::models::ListenError;
 use tokio::sync::mpsc::Sender;
 
-/// Listen to a player actions.
+/// Listen to the actions of a player.
+/// 
+/// This trait define the expected behavior of a player listener.
+/// It is meant to listen to a player action and push them to a
+/// given channel.
 pub trait PlayerListener: Send + Sync + 'static {
     /// listen to player action and push them in a given channel.
     /// 
