@@ -1,3 +1,5 @@
+//! Define the board state manager port models.
+
 use std::fmt;
 use std::hash::Hash;
 use thiserror::Error;
@@ -85,12 +87,18 @@ pub enum CellStatus
     White,
 }
 
-
+/// Describe a row orientation from an axis 2D vector.
+/// 
+/// Mainly used for win check functions.
 pub enum CheckRowAxis
 {
+    /// A horizontal axis going from left to right.
     Horizontal,
+    /// A verical axis going from top to bottom.
     Vertical,
+    /// A diagonal axis going from the bottom left to the up right.
     DiagonalUp,
+    /// A diagonal axis going from the up left to the bottom right.
     DiagonalDown,
 }
 

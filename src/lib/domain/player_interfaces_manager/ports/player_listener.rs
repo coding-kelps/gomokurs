@@ -1,6 +1,6 @@
-//! Define the PlayerListener Service port.
+//! Define the player listener service port.
 //! 
-//! This module define the PlayerListener port which role is to listen to player
+//! This module defines the player listener service port which role is to listen to player
 //! actions.
 
 use crate::domain::game_manager::models::{PlayerColor, PlayerAction};
