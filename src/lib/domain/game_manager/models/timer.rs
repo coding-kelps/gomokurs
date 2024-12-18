@@ -12,11 +12,11 @@ use std::sync::Arc;
 /// durations.
 ///
 /// The player timer is composed of two internal timers:
-/// * **Turn Timer** - Runs for the specified `turn_duration` and resets at the
-/// start of each turn.
-/// * **Match Timer** - Acts as a time reserve that only starts decrementing
-/// once the turn timer has expired. When the match timer is exhausted, the
-/// player loses.
+/// * **Turn Timer** - Runs for the specified `turn_duration` at each of the
+/// player and resets until it plays.
+/// * **Match Timer** - Runs for the specified `match_duration` only  during the
+/// player's turns for the whole match.
+/// If one of those timers run out, the player loose.
 #[derive(Debug, Clone)]
 pub struct Timer {
     /// The duration of a single turn.
@@ -58,10 +58,6 @@ impl Timer {
     /// Runs the timer, starting in a paused state if specified. Returns when
     /// the timer runs out.
     ///
-    /// This method loops until the timer expires or is paused. The elapsed time
-    /// is updated as the timer progresses, and it responds to pause and resume
-    /// notifications.
-    ///
     /// # Arguments
     /// * `start_paused` - If `true`, the timer starts in a paused state.
     pub async fn run(
@@ -76,13 +72,11 @@ impl Timer {
             let start_time = Instant::now();
 
             tokio::select! {
-                // Sleep for the turn duration, then sleep for the remaining
-                // time of the match duration.
-                _ = {
-                    sleep(self.turn_duration).await;
-
-                    sleep(*self.elapsed.lock().await)
-                 } => {
+                // Sleep for the turn duration
+                _ = sleep(self.turn_duration) => {
+                    return;
+                },
+                _ = sleep(*self.elapsed.lock().await) => {
                     return;
                 },
                 // Pause timer if a pause notification was send.
