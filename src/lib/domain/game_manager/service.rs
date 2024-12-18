@@ -1,3 +1,9 @@
+//! An implementation of the game manager service.
+//! 
+//! This module provides an implementation of the `GameManagerService` interface
+//! for managing a game with black and white players. The service includes game
+//! initialization, handling player actions, and managing game timers.
+
 use crate::domain::game_manager::ports::{GameManagerService, PlayerNotifier};
 use crate::domain::game_manager::models::*;
 use crate::domain::board_state_manager::models::GameEnd;
@@ -21,6 +27,21 @@ where
     N: PlayerNotifier,
     B: BoardStateManagerService,
 {
+    /// Creates a new `Service` instance.
+    /// 
+    /// # Arguments
+    /// * `black_player_notifier` - An `Arc` containing the notifier for the
+    /// black player.
+    /// * `white_player_notifier` - An `Arc` containing the notifier for the
+    /// white player.
+    /// * `board` - A board state manager implementing
+    /// `BoardStateManagerService`.
+    /// * `turn_duration` - The maximum duration of a single player's turn.
+    /// * `match_duration` - The maximum duration to the total time allocated
+    /// for all of a single player's turns.
+    /// 
+    /// # Returns
+    /// A new `Service` instance.
     pub fn new(
         black_player_notifier: Arc<N>,
         white_player_notifier: Arc<N>,
