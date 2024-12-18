@@ -1,4 +1,4 @@
-//! Define the game manager port models.
+//! Define the game manager port player-related models.
 
 pub use crate::domain::board_state_manager::models::{PlayerColor, Position};
 use crate::domain::game_manager::ports::PlayerNotifier;
