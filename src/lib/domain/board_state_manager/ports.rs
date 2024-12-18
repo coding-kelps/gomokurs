@@ -1,3 +1,8 @@
+//! Define the board state manager service port.
+//! 
+//! This module defines the board state manager service port which roile it to
+//! manage the gomoku board state, properly applying changes to it.
+
 use crate::domain::board_state_manager::models::{PlayerColor, Position, BoardSize, GameEnd, Error};
 
 pub trait BoardStateManagerService
