@@ -1,3 +1,6 @@
+//! This module contains the implementation of the PlayerNotifier port for the
+//! local player interface.
+
 use crate::adapters::player_interfaces::local::Local;
 use crate::domain::game_manager::ports::PlayerNotifier;
 use crate::domain::game_manager::models::{Position, NotifyError, RelativeTurn, Information};
