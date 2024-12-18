@@ -149,7 +149,12 @@ impl Board
         }
     }
 
-    /// Set a given cell from the board at a status. 
+    /// Set a specific cell from the board at a given status.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `position` - The position of the board's cell to set.
+    /// * `new_status` - The new status to assign to the cell.
     pub fn set_cell(
         &mut self,
         position: Position,
@@ -167,14 +172,22 @@ impl Board
         Ok(())
     }
 
-    /// Check if a row contains five of a given status in a row. 
-    fn check_row(
+    /// Check if a row contains five cells of the same status in a row.
+    /// 
+    /// The function return true if the row contained 5 or more of a status
+    /// in a row, false when not.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `origin` - The central point of the row to check.
+    /// * `axis` - The axis describing the row orientation.
+    async fn check_row(
         &self,
         origin: Position,
         axis: CheckRowAxis,
-        status: CellStatus,
     ) -> bool
     {
+        let status = self.cells[origin.x as usize][origin.y as usize];
         let mut nb_consecutive = 0u8;
 
         for i in -5..5 {
@@ -203,27 +216,33 @@ impl Board
         false
     }
 
-    /// Check for a player win in the board from the last move.
-    pub fn check_win(
+    /// Check if a played move resulted in a player win.
+    /// 
+    /// The function takes the played move as central point
+    /// to check in all axis if there is 5 or more cells
+    /// of the same status in a row (signifying a player win).
+    /// 
+    /// # Arguments
+    /// 
+    /// * `played_move` - The position of the played move.
+    pub async fn check_win(
         &self,
-        last_move: Position,
-        player: CellStatus,
+        played_move: Position,
     ) -> bool
     {
-        self.check_row(last_move, 
-                CheckRowAxis::Horizontal,
-                player.into())
-            || self.check_row(last_move,
-                CheckRowAxis::Vertical,
-                player.into())
-            || self.check_row(last_move,
-                CheckRowAxis::DiagonalUp,
-                player.into(),
-            )
-            || self.check_row(last_move,
-                CheckRowAxis::DiagonalDown,
-                player.into(),
-            )
+        tokio::select! {
+            true = self.check_row(
+                played_move, CheckRowAxis::Horizontal) => true,
+            true = self.check_row(
+                played_move, CheckRowAxis::Vertical) => true,
+            true = self.check_row(
+                played_move, CheckRowAxis::DiagonalUp) => true,
+            true = self.check_row(
+                played_move, CheckRowAxis::DiagonalDown) => true,
+            else => {
+                false
+            }
+        }
     }
 }
 
