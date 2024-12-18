@@ -41,7 +41,7 @@ impl BoardStateManagerService for Service
         } else {
             self.board.set_cell(position, color.into())?;
 
-            if self.board.check_win(position, color.into()) {
+            if self.board.check_win(position).await {
                 Ok(Some(GameEnd::Win(color)))
             } else {
                 self.turn_player.switch();
