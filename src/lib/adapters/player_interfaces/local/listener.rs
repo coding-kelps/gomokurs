@@ -1,3 +1,6 @@
+//! This module contains the implementation of the PlayerListener port for the
+//! local player interface.
+
 use crate::adapters::player_interfaces::local::Local;
 use crate::domain::player_interfaces_manager::ports::PlayerListener;
 use crate::domain::player_interfaces_manager::models::ListenError;
