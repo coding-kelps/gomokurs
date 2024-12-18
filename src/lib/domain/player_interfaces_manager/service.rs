@@ -17,6 +17,7 @@ pub struct Service
 
 impl Service
 {
+    /// Initialize a new player interfaces manager service.
     pub fn new(
     ) -> Self {
         Self {}
@@ -28,17 +29,6 @@ where
     I: PlayerListener + PlayerNotifier,
     G: GameManagerService,
 {
-    /// Run a game from a given game_manager, coordinating both white and black
-    /// players interface concurrent inputs for the game manager, eventually
-    /// returns the game ending.
-    /// 
-    /// # Arguments
-    /// 
-    /// * `black_interface` - An Arc to a player interface of what will be
-    /// considered the black player during the game.
-    /// * `white_interface` - An Arc to a player interface of what will be
-    /// considered the white player during the game.
-    /// * `game_manager` - A game manager
     async fn run(
         &mut self,
         black_interface: Arc<I>,

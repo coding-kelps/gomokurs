@@ -1,8 +1,9 @@
+//! An implementation of the board state manager service.
+
 use crate::domain::board_state_manager::ports::BoardStateManagerService;
-use crate::domain::board_state_manager::models::{Board, PlayerColor, Position, GameEnd, Error};
+use crate::domain::board_state_manager::models::{Board, PlayerColor, Position, GameEnd, BoardSize, Error};
 
-use super::models::BoardSize;
-
+/// An implementation of the board state manager service.
 pub struct Service
 {
     board: Board,
@@ -11,6 +12,13 @@ pub struct Service
 
 impl Service
 {
+    /// Initialize a new board state manager service
+    /// from a given board size.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `size` - The size of the board (in width and height) that will be
+    /// created and managed by the board state manager.
     pub fn new(
         size: BoardSize,
     ) -> Self
