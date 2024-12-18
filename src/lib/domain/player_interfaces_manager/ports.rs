@@ -1,4 +1,4 @@
-//! Define the port required by player interfaces manager service.
+//! Define the ports required by the player interfaces manager service.
 
 pub mod service;
 pub mod player_listener;
