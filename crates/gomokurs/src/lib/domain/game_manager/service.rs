@@ -90,7 +90,7 @@ where
             _ = self.black_player.timer.run(false) => {
                 Ok(GameEnd::Win(PlayerColor::White))
             },
-            _ = self.white_player.timer.run(false) => {
+            _ = self.white_player.timer.run(true) => {
                 Ok(GameEnd::Win(PlayerColor::Black))
             },
         }
