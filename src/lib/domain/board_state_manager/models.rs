@@ -1,10 +1,10 @@
-//! Define the board state manager port models.
+//! Models for the board state manager port in a Gomoku game.
 
 use std::fmt;
 use std::hash::Hash;
 use thiserror::Error;
 
-/// A player color (either black or white).
+/// Represents a player's color in the game: either black or white.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PlayerColor {
     Black,
@@ -13,7 +13,7 @@ pub enum PlayerColor {
 
 impl PlayerColor
 {
-    /// Returns the opposite color.
+    /// Returns the opponent's color.
     pub fn other(&self) -> PlayerColor
     {
         match self {
@@ -22,7 +22,7 @@ impl PlayerColor
         }
     }
 
-    /// Change current value of player color for the opposite one.
+    /// Toggles the current color to the opposite color.
     pub fn switch(&mut self)
     {
         *self = match *self {
@@ -53,7 +53,7 @@ impl fmt::Display for PlayerColor
     }
 }
 
-/// A 2D coordinates to describe a position on the board.
+/// Represents a position on the board using 2D coordinates.
 #[derive(Clone, Debug, PartialEq, Eq, Copy)]
 pub struct Position {
     pub x: u8,
@@ -61,6 +61,7 @@ pub struct Position {
 }
 
 impl Position {
+    /// Creates a new `Position` with the given coordinates.
     pub fn new(x: u8, y: u8) -> Self {
         Self {
             x: x,
@@ -75,30 +76,28 @@ impl fmt::Display for Position {
     }
 }
 
-/// An enum describing a Board cell status.
+/// Represents the status of a cell on the board.
 #[derive(Clone, Debug, PartialEq, Eq, Copy)]
 pub enum CellStatus
 {
-    /// No stone, the cell is available.
+    /// The cell is available for a move.
     Available,
-    // A black stone has been played on this cell.
+    /// A black stone occupies the cell.
     Black,
-    // A white stone has been played on this cell.
+    /// A white stone occupies the cell.
     White,
 }
 
-/// Describe a row orientation from an axis 2D vector.
-/// 
-/// Mainly used for win check functions.
+/// Defines the direction of a row for win checks.
 pub enum CheckRowAxis
 {
-    /// A horizontal axis going from left to right.
+    /// Horizontal row (left-to-right).
     Horizontal,
-    /// A verical axis going from top to bottom.
+    /// Vertical row (top-to-bottom).
     Vertical,
-    /// A diagonal axis going from the bottom left to the up right.
+    /// Diagonal row (bottom-left to top-right).
     DiagonalUp,
-    /// A diagonal axis going from the up left to the bottom right.
+    /// Diagonal row (top-left to bottom-right).
     DiagonalDown,
 }
 
@@ -115,23 +114,23 @@ impl CheckRowAxis
     }
 }
 
-/// The gomoku board.
+/// Represents the game board in a Gomoku match.
 #[derive(Debug, Clone)]
 pub struct Board
 {
-    /// The size of the board.
+    /// Dimensions of the board.
     pub size: BoardSize,
-    /// The cells of the board of a 2D vector.
+    /// Current state of each cell on the board.
     pub cells: Vec<Vec<CellStatus>>,
 }
 
-/// An error when the setting of a board cell status failed.
+/// Errors related to board operations.
 #[derive(Debug, Error)]
 pub enum SetCellError {
-    /// When the cell wasn't available.
+    /// The cell is not available for a move.
     #[error("index `{0}` points to unavailable cell")]
     UnavailableCell(Position),
-    /// When the cell coordinates were out of bounds.
+    /// The cell is outside the board boundaries.
     #[error("index `{position}` out of bounds: `{size}`")]
     OutOfBounds {
         position: Position,
@@ -139,12 +138,12 @@ pub enum SetCellError {
     },
 }
 
-/// The 2D size of a Board.
+/// The size of the board as a 2D dimension.
 pub type BoardSize = Position;
 
 impl Board
 {
-    /// Instantiate a new [`Board`] from a given size.
+    /// Creates a new empty board of the specified size.
     pub fn new(
         size: BoardSize,
     ) -> Self
@@ -157,7 +156,7 @@ impl Board
         }
     }
 
-    /// Set a specific cell from the board at a given status.
+    /// Sets the status of a specific cell.
     /// 
     /// # Arguments
     /// 
@@ -180,15 +179,12 @@ impl Board
         Ok(())
     }
 
-    /// Check if a row contains five cells of the same status in a row.
-    /// 
-    /// The function return true if the row contained 5 or more of a status
-    /// in a row, false when not.
+    /// Checks if a row contains at least five consecutive cells of the same status.
     /// 
     /// # Arguments
     /// 
-    /// * `origin` - The central point of the row to check.
-    /// * `axis` - The axis describing the row orientation.
+    /// - `origin`: The starting position for the check.
+    /// - `axis`: The direction to check.
     async fn check_row(
         &self,
         origin: Position,
@@ -224,15 +220,11 @@ impl Board
         false
     }
 
-    /// Check if a played move resulted in a player win.
-    /// 
-    /// The function takes the played move as central point
-    /// to check in all axis if there is 5 or more cells
-    /// of the same status in a row (signifying a player win).
+    /// Checks if a move results in a win.
     /// 
     /// # Arguments
     /// 
-    /// * `played_move` - The position of the played move.
+    /// - `played_move`: The position of the last move.
     pub async fn check_win(
         &self,
         played_move: Position,
@@ -283,26 +275,25 @@ impl fmt::Display for Board
     }
 }
 
-/// An gomoku match ending.
+/// Represents the end state of a Gomoku game.
 #[derive(Debug, Clone, Copy)]
 pub enum GameEnd {
-    /// A Player won.
+    /// A player has won the game.
     Win(PlayerColor),
-    /// Draw, no player won.
+    /// The game ended in a draw.
     Draw,
 }
 
 /// An error returned by the board state manager.
 #[derive(Debug, Error)]
 pub enum Error {
-    /// An error returned when a player tried to player while it was not the
-    /// player turn to play.
+    /// Attempted to play out of turn.
     #[error("it is not `{0}` turn")]
     NotPlayerTurn(PlayerColor),
-    /// An error when a cell status setting failed.
+    /// An error occurred while setting a cell's status.
     #[error("set cell error: `{0}`")]
     SetCellError(#[from] SetCellError),
-    /// An implementation specific error.
+    /// For implementation-specific error.
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }

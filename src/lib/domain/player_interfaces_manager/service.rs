@@ -1,4 +1,7 @@
-//! An implementation of the player interfaces manager service.
+//! Implementation of the Player Interfaces Manager service.
+//!
+//! This service manages player listener adapters, linking them to the
+//! corresponding `GameManager` handlers.
 
 use crate::domain::player_interfaces_manager::ports::{PlayerInterfacesManagerService, PlayerListener};
 use crate::domain::game_manager::ports::{GameManagerService, PlayerNotifier};
@@ -9,7 +12,12 @@ use crate::domain::board_state_manager::models::GameEnd;
 use crate::domain::player_interfaces_manager::models::Error;
 use std::sync::Arc;
 
-/// An implementation of the player interfaces manager service.
+/// Represents the Player Interfaces Manager service.
+///
+/// This service is responsible for:
+/// - Managing player listener adapters.
+/// - Routing player input to the appropriate `GameManager` handlers.
+/// - Providing a bridge between players and the game logic.
 #[derive(Debug, Clone)]
 pub struct Service
 {
@@ -17,7 +25,7 @@ pub struct Service
 
 impl Service
 {
-    /// Initialize a new player interfaces manager service.
+    /// Creates a new instance of the Player Interfaces Manager service.
     pub fn new(
     ) -> Self {
         Self {}

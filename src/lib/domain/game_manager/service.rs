@@ -39,9 +39,6 @@ where
     /// * `turn_duration` - The maximum duration of a single player's turn.
     /// * `match_duration` - The maximum duration to the total time allocated
     /// for all of a single player's turns.
-    /// 
-    /// # Returns
-    /// A new `Service` instance.
     pub fn new(
         black_player_notifier: Arc<N>,
         white_player_notifier: Arc<N>,

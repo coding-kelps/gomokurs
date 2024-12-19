@@ -1,35 +1,41 @@
-//! Define the models of the player interfaces manager service.
+//! Models for the `PlayerInterfacesManager` service.
+//!
+//! This module defines errors and data types used within the
+//! `PlayerInterfacesManager`, a domain service responsible for managing player
+//! listeners and handling player actions.
 
 pub use crate::domain::board_state_manager::models::{PlayerColor, Position};
 pub use crate::domain::game_manager::models::Error as GameManagerError;
 use tokio::task::JoinError;
 use thiserror::Error;
 
-/// An error returned by a player interfaces manager.
+/// Errors returned by the `PlayerInterfacesManager` service.
 #[derive(Debug, Error)]
 pub enum Error {
-    /// An error returned when the channel used to coordinates received player
-    /// actions unexpectedly closed.
+    /// Indicates that the channel coordinating received player actions was
+    /// unexpectedly closed.
     #[error("actions' channel abruptly closed ")]
     ChannelClosed,
-    /// An error returned by the listeners join set.
+    /// An error occurred within the listeners' join set.
     #[error("listeners join set error: `{0}`")]
     JoinError(#[from] JoinError),
-    /// An error returned by a player listener.
+    /// An error was returned by a player listener.
     #[error("listener error: `{0}`")]
     ListenError(#[from] ListenError), 
-    /// An error returned by the game manager.
+    /// An error propagated from the game manager.
     #[error("game error: `{0}`")]
     GameError(#[from] GameManagerError),
-    /// An implementation specific error.
+    /// For implementation-specific error.
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }
 
-/// An Error returned by a player listener.
+/// Errors returned by a player listener.
+///
+/// A `PlayerListener` is an adapter for interfacing with individual players.
 #[derive(Debug, Error)]
 pub enum ListenError {
-    /// An implementation specific error. 
+    /// For implementation-specific error.
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }

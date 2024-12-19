@@ -8,15 +8,20 @@ use tokio::time::{sleep, Duration, Instant};
 use tokio::sync::{Mutex, Notify};
 use std::sync::Arc;
 
-/// The `Timer` struct represents a timer with configurable turn and match
-/// durations.
+/// The `Timer` struct represents a configurable timer used to manage turn and 
+/// match durations in a Gomoku game.
 ///
-/// The player timer is composed of two internal timers:
-/// * **Turn Timer** - Runs for the specified `turn_duration` at each of the
-/// player and resets until it plays.
-/// * **Match Timer** - Runs for the specified `match_duration` only  during the
-/// player's turns for the whole match.
-/// If one of those timers run out, the player loose.
+/// The `Timer` consists of two internal components:
+/// 
+/// - **Turn Timer**: Tracks the time allotted for a single player's turn. 
+///   This timer is reset at the start of each player's turn and runs for the 
+///   specified `turn_duration`.
+///
+/// - **Match Timer**: Tracks the cumulative time a player spends on their turns 
+///   throughout the entire match. This timer runs only during a player's active 
+///   turns and is limited by the specified `match_duration`.
+///
+/// If either timer expires, the corresponding player loses the game.
 #[derive(Debug, Clone)]
 pub struct Timer {
     /// The duration of a single turn.
