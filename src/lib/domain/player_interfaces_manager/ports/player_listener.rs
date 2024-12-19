@@ -1,24 +1,31 @@
-//! Define the player listener service port.
-//! 
-//! This module defines the player listener service port which role is to listen to player
-//! actions.
+//! Player Listener Service Port
+//!
+//! This module defines the service port for the Player Listener, responsible
+//! for listening to player actions and forwarding them to a specified channel.
 
 use crate::domain::game_manager::models::{PlayerColor, PlayerAction};
 use crate::domain::player_interfaces_manager::models::ListenError;
 use tokio::sync::mpsc::Sender;
 
-/// Listen to the actions of a player.
-/// 
-/// This trait define the expected behavior of a player listener.
-/// It is meant to listen to a player action and push them to a
-/// given channel.
+/// A trait for listening to player actions.
+///
+/// The `PlayerListener` trait outlines the expected behavior of a player
+/// listener. It listens for a player's actions and sends them to a specified
+/// channel. Implementations of this trait enable communication between the game
+/// manager and player interfaces.
+///
+/// # Responsibilities
+/// * Listen to player actions in real-time.
+/// * Forward the player's actions along with their associated color to the
+/// provided channel.
 pub trait PlayerListener: Send + Sync + 'static {
-    /// listen to player action and push them in a given channel.
-    /// 
+    /// Listens for player actions and sends them to the specified channel.
+    ///
     /// # Arguments
-    /// 
-    /// * `color` - The color of the player that is listened to.
-    /// * `tx` - A sender to player actions' channel.
+    ///
+    /// * `color` - The `PlayerColor` representing the player being listened to.
+    /// * `tx` - A `Sender` channel for forwarding `(PlayerColor, PlayerAction)`
+    /// tuples.
     fn listen(
         &self,
         color: PlayerColor,

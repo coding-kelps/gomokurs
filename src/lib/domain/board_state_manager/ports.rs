@@ -1,16 +1,17 @@
-//! Define the board state manager service port.
+//! Defines the board state manager service port.
 //! 
-//! This module defines the board state manager service port which role it to
-//! manage the gomoku board state, applying changes to it and checking for
-//! players win.
+//! This module defines the board state manager service port, which is
+//! responsible for managing the state of the gomoku board. It applies changes
+//! to the board and checks for a player’s victory condition.
 
 use crate::domain::board_state_manager::models::{PlayerColor, Position, BoardSize, GameEnd, Error};
 
-/// Manage gomoku board state, applying changes to it and checking for players
-/// win.
+/// A service responsible for managing the state of the gomoku board,
+/// applying changes to the board, and determining when a player has won.
 pub trait BoardStateManagerService
 {
-    /// Return the size of the board as a 2D vector.
+    /// Returns the size of the board as a `BoardSize` struct, representing the
+    /// 2D dimensions.
     /// 
     /// # Examples
     /// 
@@ -28,7 +29,7 @@ pub trait BoardStateManagerService
         &self,
     ) -> impl std::future::Future<Output = BoardSize>;
 
-    /// Put a player stone on a cell of the board.
+    /// Places a player’s stone on a specified cell of the board.
     /// 
     /// # Arguments
     /// 
