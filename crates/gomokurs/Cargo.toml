@@ -11,6 +11,9 @@ path = "src/lib/lib.rs"
 name = "gomokurs"
 path = "src/bin/gomokurs/main.rs"
 
+[features]
+default = ["local"]
+local = []
 
 [dependencies]
 anyhow = "1.0.93"
