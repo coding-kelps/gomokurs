@@ -1,9 +1,11 @@
-//! An implementation of the board state manager service.
+//! This module contains the implementation of the Board State Manager service.
 
 use crate::domain::board_state_manager::ports::BoardStateManagerService;
 use crate::domain::board_state_manager::models::{Board, PlayerColor, Position, GameEnd, BoardSize, Error};
 
-/// An implementation of the board state manager service.
+/// Represents the Board State Manager service that is responsible for managing
+/// the game board state, handling player turns, and determining the game
+/// status.
 pub struct Service
 {
     board: Board,
@@ -12,13 +14,14 @@ pub struct Service
 
 impl Service
 {
-    /// Initialize a new board state manager service
-    /// from a given board size.
-    /// 
+    /// Creates a new instance of the Board State Manager service with the given
+    /// board size. The board is initialized, and the first player is set to
+    /// `PlayerColor::Black`.
+    ///
     /// # Arguments
-    /// 
-    /// * `size` - The size of the board (in width and height) that will be
-    /// created and managed by the board state manager.
+    ///
+    /// * `size` - The dimensions of the board (width and height) that the 
+    ///           Board State Manager will handle.
     pub fn new(
         size: BoardSize,
     ) -> Self

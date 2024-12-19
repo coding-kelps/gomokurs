@@ -6,33 +6,33 @@ use thiserror::Error;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-/// An implementation of a player interface for a local binary launch by the
-/// gomokurs manager.
+/// Represents a local player interface for running a Gomoku AI binary as a
+/// subprocess managed by the Gomoku manager.
 pub struct Local {
-    /// The AI local process handled by the player interface.
+    /// The child process representing the AI binary.
     _child: Child,
-    /// The buffer reader of the AI local process.
+    /// The buffered reader for the AI process's standard output.
     pub reader: Arc<Mutex<Lines<BufReader<ChildStdout>>>>,
-    /// The buffer writer of the AI local process.
+    /// The buffered writer for the AI process's standard input.
     pub writer: Arc<Mutex<BufWriter<ChildStdin>>>,
 }
 
-/// An error returned by the player interface when it failed to instantiate
-/// itself.
+/// An error type for issues encountered when creating the local player
+/// interface.
 #[derive(Debug, Error)]
 pub enum CreateLocalProgramError {
-    /// An error returned when the player interface failed to execute the AI
-    /// binary as a child process.
+    /// An error occurred when spawning the AI binary as a subprocess.
     #[error("create subprocess error: `{0}`")]
     CreateSubprocessError(#[from] tokio::io::Error),
 }
 
 impl Local {
-    /// Create a new local player interface from a AI binary path.
+    /// Creates a new instance of the local player interface by launching the AI
+    /// binary.
     /// 
     /// # Arguments
-    /// 
-    /// * `binary` - The path to the local AI binary.
+    ///
+    /// * `binary` - The path to the AI binary to be executed as a subprocess.
     pub async fn new(binary: &Path) -> Result<Self, CreateLocalProgramError> {
         let mut child = Command::new(binary)
             .stdin(Stdio::piped())
