@@ -5,11 +5,7 @@ edition = "2021"
 
 [lib]
 name = "gomokurs"
-path = "src/lib/lib.rs"
-
-[[bin]]
-name = "gomokurs"
-path = "src/bin/gomokurs/main.rs"
+path = "src/lib.rs"
 
 [features]
 default = ["local"]
