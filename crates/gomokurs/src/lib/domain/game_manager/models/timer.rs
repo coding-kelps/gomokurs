@@ -81,7 +81,7 @@ impl Timer {
                 _ = sleep(self.turn_duration) => {
                     return;
                 },
-                _ = sleep(*self.elapsed.lock().await) => {
+                _ = sleep(self.get_remaining().await) => {
                     return;
                 },
                 // Pause timer if a pause notification was send.
