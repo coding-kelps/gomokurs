@@ -284,6 +284,20 @@ pub enum GameEnd {
     Draw,
 }
 
+impl fmt::Display for GameEnd
+{
+    fn fmt(
+        &self,
+        f: &mut fmt::Formatter,
+    ) -> fmt::Result
+    {
+        match &self {
+            GameEnd::Win(p) => write!(f, "{} won", p),
+            GameEnd::Draw => write!(f, "board filled, draw"),
+        }
+    }
+}
+
 /// An error returned by the board state manager.
 #[derive(Debug, Error)]
 pub enum Error {
