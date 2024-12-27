@@ -1,10 +1,10 @@
 [package]
-name = "gomokurs"
+name = "gomokurs-game-engine"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "gomokurs"
+name = "gomokurs_game_engine"
 path = "src/lib.rs"
 
 [features]
