@@ -8,9 +8,9 @@ license = "MIT"
 authors = ["Coding Kelps"]
 
 [workspace.dependencies]
-gomokurs = { path = "./crates/gomokurs" }
-server = { path = "./crates/server" }
-cli = { path = "./crates/cli" }
+gomokurs-game-engine = { path = "./crates/gomokurs_game_engine" }
+gomokurs-server = { path = "./crates/gomokurs_server" }
+gomokurs-cli = { path = "./crates/gomokurs_cli" }
 
 anyhow = "1.0.93"
 lazy_static = "1.5.0"
@@ -21,4 +21,5 @@ tokio-test = "0.4.4"
 tracing = { version = "0.1.41", features = ["log"] }
 tracing-subscriber = "0.3.19"
 clap = { version = "4.5.23", features = ["derive"] }
-
+axum = "0.7.9"
+serde = { version = "1.0.216", features = ["derive"] }
