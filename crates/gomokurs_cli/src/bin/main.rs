@@ -1,8 +1,8 @@
-use cli::configuration::{Configuration, PlayerConfig};
-use gomokurs::adapters::player_interfaces::local::Local;
-use gomokurs::domain::board_state_manager::{BoardStateManager, models::BoardSize};
-use gomokurs::domain::game_manager::GameManager;
-use gomokurs::domain::player_interfaces_manager::{PlayerInterfacesManager, PlayerInterfacesManagerService};
+use gomokurs_cli::configuration::{Configuration, PlayerConfig};
+use gomokurs_game_engine::adapters::player_interfaces::local::Local;
+use gomokurs_game_engine::domain::board_state_manager::{BoardStateManager, models::BoardSize};
+use gomokurs_game_engine::domain::game_manager::GameManager;
+use gomokurs_game_engine::domain::player_interfaces_manager::{PlayerInterfacesManager, PlayerInterfacesManagerService};
 use std::sync::Arc;
 use tokio::time::Duration;
 
