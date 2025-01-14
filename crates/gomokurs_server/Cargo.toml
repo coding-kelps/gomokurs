@@ -1,0 +1,24 @@
+[package]
+name = "gomokurs-server"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "gomokurs-server"
+path = "src/bin/main.rs"
+
+[dependencies]
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+axum.workspace = true
+serde.workspace = true
+tower-http.workspace = true
+
+# Local crates
+
+gomokurs-game-engine.workspace = true
