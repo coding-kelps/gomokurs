@@ -200,7 +200,7 @@ where
         color: PlayerColor,
         content: String,
     ) -> Result<(), Error> {
-        tracing::error!("{} send message: \"{}\"", color, content);
+        tracing::info!("{} send message: \"{}\"", color, content);
   
         Ok(())
     }
@@ -210,7 +210,7 @@ where
         color: PlayerColor,
         content: String,
     ) -> Result<(), Error> {    
-        tracing::error!("{} send debug: \"{}\"", color, content);
+        tracing::debug!("{} send debug: \"{}\"", color, content);
 
         Ok(())
     }
@@ -220,7 +220,7 @@ where
         color: PlayerColor,
         position: Position,
     ) -> Result<(), Error> {
-        tracing::error!("{} send suggestion: \"{}\"", color, position);
+        tracing::info!("{} send suggestion: \"{}\"", color, position);
 
         Ok(())
     }
