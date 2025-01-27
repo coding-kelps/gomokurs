@@ -1,7 +1,7 @@
 //! This module contains the implementation of the PlayerNotifier port for the
 //! tcp player interface.
 
-use crate::adapters::player_interfaces::tcp::tcp::{Tcp, CommandID};
+use crate::adapters::player_interfaces::tcp::tcp::{Tcp, ActionID};
 use crate::domain::game_manager::ports::PlayerNotifier;
 use crate::domain::game_manager::models::{Information, NotifyError, Position, RelativeField, RelativeTurn};
 use tokio::io::AsyncWriteExt;
@@ -16,7 +16,7 @@ impl PlayerNotifier for Tcp {
         let mut writer = self.writer.lock().await;
 
         writer
-            .write_all(&[CommandID::START, size])
+            .write_all(&[ActionID::START, size])
             .await
             .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
         
@@ -31,7 +31,7 @@ impl PlayerNotifier for Tcp {
         let mut writer = self.writer.lock().await;
 
         writer
-            .write_all(&[CommandID::TURN, position.x, position.y])
+            .write_all(&[ActionID::TURN, position.x, position.y])
             .await
             .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
 
@@ -45,7 +45,7 @@ impl PlayerNotifier for Tcp {
         let mut writer = self.writer.lock().await;
 
         writer
-            .write_all(&[CommandID::BEGIN])
+            .write_all(&[ActionID::BEGIN])
             .await
             .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
 
@@ -60,7 +60,7 @@ impl PlayerNotifier for Tcp {
         let mut writer = self.writer.lock().await;
 
         writer
-            .write_all(&[CommandID::BOARD])
+            .write_all(&[ActionID::BOARD])
             .await
             .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
 
@@ -71,13 +71,13 @@ impl PlayerNotifier for Tcp {
             };
 
             writer
-                .write_all(&[CommandID::BOARD_TURN, turn.position.x, turn.position.y, field])
+                .write_all(&[ActionID::BOARD_TURN, turn.position.x, turn.position.y, field])
                 .await
                 .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
         }
 
         writer
-            .write_all(&[CommandID::BOARD_END])
+            .write_all(&[ActionID::BOARD_END])
             .await
             .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
 
@@ -95,7 +95,7 @@ impl PlayerNotifier for Tcp {
         let bytes_info = info_str.as_bytes();
         let bytes_info_len: &[u8] = &(bytes_info.len() as u32).to_be_bytes();
 
-        let data = [&[CommandID::INFO], bytes_info_len, bytes_info].concat();
+        let data = [&[ActionID::INFO], bytes_info_len, bytes_info].concat();
 
         writer
             .write_all(&data)
@@ -112,7 +112,7 @@ impl PlayerNotifier for Tcp {
         let mut writer = self.writer.lock().await;
 
         writer
-            .write_all(&[CommandID::END])
+            .write_all(&[ActionID::END])
             .await
             .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
 
@@ -126,7 +126,7 @@ impl PlayerNotifier for Tcp {
         let mut writer = self.writer.lock().await;
 
         writer
-            .write_all(&[CommandID::ABOUT])
+            .write_all(&[ActionID::ABOUT])
             .await
             .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
 
