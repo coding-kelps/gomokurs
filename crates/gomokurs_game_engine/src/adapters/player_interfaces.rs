@@ -3,3 +3,5 @@
 
 #[cfg(feature = "local")]
 pub mod local;
+#[cfg(feature = "tcp")]
+pub mod tcp;
