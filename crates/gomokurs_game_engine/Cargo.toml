@@ -8,8 +8,9 @@ name = "gomokurs_game_engine"
 path = "src/lib.rs"
 
 [features]
-default = ["local"]
+default = ["local", "tcp"]
 local = []
+tcp = []
 
 [dependencies]
 anyhow.workspace = true
