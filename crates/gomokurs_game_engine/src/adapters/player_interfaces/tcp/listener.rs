@@ -8,6 +8,7 @@ use crate::domain::game_manager::models::{PlayerColor, PlayerAction};
 use tokio::sync::mpsc::Sender;
 
 impl PlayerListener for Tcp {
+    #[allow(unused_variables)]
     async fn listen(
         &self,
         player: PlayerColor,
