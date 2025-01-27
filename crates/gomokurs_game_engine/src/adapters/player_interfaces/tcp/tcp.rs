@@ -25,3 +25,18 @@ impl Tcp {
         })
     }
 }
+
+#[non_exhaustive]
+pub struct CommandID;
+
+impl CommandID {
+    pub const START: u8 = 0x01;
+    pub const TURN: u8 = 0x02;
+    pub const BEGIN: u8 = 0x03;
+    pub const BOARD: u8 = 0x04;
+    pub const BOARD_TURN: u8 = 0x05;
+    pub const BOARD_END: u8 = 0x06;
+    pub const INFO: u8 = 0x07;
+    pub const END: u8 = 0x08;
+    pub const ABOUT: u8 = 0x09;
+}
