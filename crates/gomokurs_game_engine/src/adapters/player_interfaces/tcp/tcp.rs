@@ -3,34 +3,9 @@ use tokio::io::{ReadHalf, WriteHalf, split};
 use thiserror::Error;
 use std::sync::Arc;
 use tokio::sync::Mutex;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
-pub struct Tcp {
-    pub reader: Arc<Mutex<ReadHalf<TcpStream>>>,
-    pub writer: Arc<Mutex<WriteHalf<TcpStream>>>,
-}
-
-pub struct CreateTcpInterfaceConfiguration {
-    pub player_address: String,
-}
-
-#[derive(Debug, Error)]
-pub enum CreateTcpInterfaceError {
-    /// An error occurred when spawning the AI binary as a subprocess.
-    #[error("create tcp client error: `{0}`")]
-    CreateClientError(#[from] tokio::io::Error),
-}
-
-impl Tcp {
-    pub async fn new(cfg: CreateTcpInterfaceConfiguration) -> Result<Self, CreateTcpInterfaceError> {
-        let stream = TcpStream::connect(cfg.player_address).await?;
-        let (reader, writer) = split(stream);
-
-        Ok(Self {
-            reader: Arc::new(Mutex::new(reader)),
-            writer: Arc::new(Mutex::new(writer)),
-        })
-    }
-}
+const PROTOCOL_VERSION: &str            = "0.1.0";
 
 #[non_exhaustive]
 pub struct ActionID;
@@ -60,4 +35,81 @@ impl ActionID {
     pub const PLAYER_MESSAGE: u8                = 0x10;
     pub const PLAYER_DEBUG: u8                  = 0x11;
     pub const PLAYER_SUGGESTION: u8             = 0x12;
+}
+
+pub struct Tcp {
+    pub reader: Arc<Mutex<ReadHalf<TcpStream>>>,
+    pub writer: Arc<Mutex<WriteHalf<TcpStream>>>,
+}
+
+pub struct CreateTcpInterfaceConfiguration {
+    pub player_address: String,
+}
+
+#[derive(Debug, Error)]
+pub enum CreateTcpInterfaceError {
+    #[error("create tcp client error: `{0}`")]
+    CreateClientError(#[from] tokio::io::Error),
+    #[error("manager tcp player interface version `{manager_version}` is incompatible with player manager interface version `{player_version}`")]
+    IncompatibleProtocolError{
+        manager_version:    String,
+        player_version:     String,
+    },
+}
+
+impl Tcp {
+    pub async fn new(cfg: CreateTcpInterfaceConfiguration) -> Result<Self, CreateTcpInterfaceError> {
+        let stream = TcpStream::connect(cfg.player_address).await?;
+        let (mut reader, mut writer) = split(stream);
+
+        let mut buf = [0u8; 1];
+        reader.read_exact(&mut buf).await?;
+
+        if buf[0] == ActionID::PLAYER_PROTOCOL_VERSION {
+            let mut buf = [0u8; 4];
+            reader.read_exact(&mut buf).await?;
+            let payload_size = u32::from_be_bytes(buf) as usize;
+
+            let mut buf = vec![0u8; payload_size];
+            reader.read_exact(&mut buf).await?;
+            let player_version = String::from_utf8(buf).expect("from utf-8 error");
+
+            if player_version == PROTOCOL_VERSION {
+                writer
+                    .write_all(&[ActionID::MANAGER_PROTOCOL_COMPATIBLE])
+                    .await?;
+            } else {
+                let err = CreateTcpInterfaceError::IncompatibleProtocolError {
+                    manager_version: String::from(PROTOCOL_VERSION),
+                    player_version: player_version
+                };
+                let err_msg = format!("{}", err);
+                let bytes_error_msg = err_msg.as_bytes();
+                let bytes_error_msg_len: &[u8] = &(bytes_error_msg.len() as u32).to_be_bytes();
+
+                let data = [&[ActionID::MANAGER_ERROR], bytes_error_msg_len, bytes_error_msg].concat();
+
+                writer
+                    .write_all(&data)
+                    .await?;
+
+                return Err(err)
+            }
+        } else {
+            let error_msg = format!("unexpected version");
+            let bytes_error_msg = error_msg.as_bytes();
+            let bytes_error_msg_len: &[u8] = &(bytes_error_msg.len() as u32).to_be_bytes();
+
+            let data = [&[ActionID::MANAGER_ERROR], bytes_error_msg_len, bytes_error_msg].concat();
+
+            writer
+                .write_all(&data)
+                .await?;
+        }
+
+        Ok(Self {
+            reader: Arc::new(Mutex::new(reader)),
+            writer: Arc::new(Mutex::new(writer)),
+        })
+    }
 }
