@@ -26,28 +26,28 @@ impl PlayerListener for Tcp {
                 .map_err(|e| ListenError::Unknown(anyhow!(e)))?;
 
             let action = match buf[0] {
-                ActionID::READY => self.ready_handler()
+                ActionID::PLAYER_READY => self.ready_handler()
                     .await
                     .map_err(|e| ListenError::Unknown(anyhow!(e)))?,
-                ActionID::PLAY => self.play_handler()
+                ActionID::PLAYER_PLAY => self.play_handler()
                     .await
                     .map_err(|e| ListenError::Unknown(anyhow!(e)))?,
-                ActionID::PLAYER_DESCRIPTION => self.player_description_handler()
+                ActionID::PLAYER_PLAYER_DESCRIPTION => self.player_description_handler()
                     .await
                     .map_err(|e| ListenError::Unknown(anyhow!(e)))?,
-                ActionID::UNKNOWN => self.unknown_handler()
+                ActionID::PLAYER_UNKNOWN => self.unknown_handler()
                     .await
                     .map_err(|e| ListenError::Unknown(anyhow!(e)))?,
-                ActionID::ERROR => self.error_handler()
+                ActionID::PLAYER_ERROR => self.error_handler()
                     .await
                     .map_err(|e| ListenError::Unknown(anyhow!(e)))?,
-                ActionID::MESSAGE => self.message_handler()
+                ActionID::PLAYER_MESSAGE => self.message_handler()
                     .await
                     .map_err(|e| ListenError::Unknown(anyhow!(e)))?,
-                ActionID::DEBUG => self.debug_handler()
+                ActionID::PLAYER_DEBUG => self.debug_handler()
                     .await
                     .map_err(|e| ListenError::Unknown(anyhow!(e)))?,
-                ActionID::SUGGESTION => self.suggestion_handler()
+                ActionID::PLAYER_SUGGESTION => self.suggestion_handler()
                     .await
                     .map_err(|e| ListenError::Unknown(anyhow!(e)))?,
                 _ => continue,
