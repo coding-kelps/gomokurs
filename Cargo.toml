@@ -9,7 +9,6 @@ authors = ["Coding Kelps"]
 
 [workspace.dependencies]
 gomokurs-game-engine = { path = "./crates/gomokurs_game_engine" }
-gomokurs-server = { path = "./crates/gomokurs_server" }
 gomokurs-cli = { path = "./crates/gomokurs_cli" }
 
 anyhow = "1.0.93"

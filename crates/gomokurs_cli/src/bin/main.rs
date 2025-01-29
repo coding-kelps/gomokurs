@@ -25,7 +25,7 @@ async fn main() {
     let black_cfg = match PlayerConfiguration::new(&cli.black_file) {
         Ok(cfg) => cfg,
         Err(e) => {
-            tracing::error!("{}", e);
+            tracing::error!("failed to read black player configuration file: {}", e);
 
             return
         }
@@ -34,7 +34,7 @@ async fn main() {
     let white_cfg = match PlayerConfiguration::new(&cli.white_file) {
         Ok(cfg) => cfg,
         Err(e) => {
-            tracing::error!("{}", e);
+            tracing::error!("failed to read white player configuration file: {}", e);
 
             return
         }
@@ -43,19 +43,22 @@ async fn main() {
     let black_player = match create_player_interface_from_cfg(black_cfg).await {
         Ok(interface) => Arc::new(interface),
         Err(e) => {
-            tracing::error!("{}", e);
+            tracing::error!("failed to create black player interface: {}", e);
 
             return
         }
     };
+    tracing::debug!("created black player interface");
+
     let white_player = match create_player_interface_from_cfg(white_cfg).await {
         Ok(interface) => Arc::new(interface),
         Err(e) => {
-            tracing::error!("{}", e);
+            tracing::error!("failed to create white player interface: {}", e);
 
             return
         }
     };
+    tracing::debug!("created white player interface");
 
     let gomoku = BoardStateManager::new(BoardSize{ x: 20, y: 20 });
 
