@@ -1,0 +1,4 @@
+protocol:
+  stdio:
+    binary: "./../../../.debug/gomocku"
+    args: []
