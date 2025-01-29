@@ -17,6 +17,9 @@ clap.workspace = true
 regex.workspace = true
 thiserror.workspace = true
 anyhow.workspace = true
+serde.workspace = true
+serde_yaml.workspace = true
+config.workspace = true
 
 # Local crates
 
