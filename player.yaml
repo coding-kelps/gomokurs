@@ -1,4 +1,4 @@
 protocol:
   stdio:
-    binary: "./../../../.debug/gomocku"
+    binary: "./.debug/gomocku"
     args: []
