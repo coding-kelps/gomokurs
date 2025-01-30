@@ -24,7 +24,7 @@ pub async fn create_player_interface_from_cfg(cfg: PlayerConfiguration) -> Resul
 {
     match cfg.protocol {
         ProtocolConfiguration::Stdio(stdio_cfg) => {
-            Ok(PlayerInterface::Local(Local::new(&stdio_cfg.binary).await?))
+            Ok(PlayerInterface::Local(Local::new(&stdio_cfg.binary, stdio_cfg.args).await?))
         },
         ProtocolConfiguration::Tcp(tcp_cfg) => {
             match tcp_cfg {

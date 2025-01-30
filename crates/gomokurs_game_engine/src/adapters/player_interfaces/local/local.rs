@@ -33,8 +33,9 @@ impl Local {
     /// # Arguments
     ///
     /// * `binary` - The path to the AI binary to be executed as a subprocess.
-    pub async fn new(binary: &Path) -> Result<Self, CreateLocalProgramError> {
+    pub async fn new(binary: &Path, args: Vec<String>) -> Result<Self, CreateLocalProgramError> {
         let mut child = Command::new(binary)
+            .args(&args)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .kill_on_drop(true)
