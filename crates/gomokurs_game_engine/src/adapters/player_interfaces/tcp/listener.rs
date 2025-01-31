@@ -25,6 +25,8 @@ impl PlayerListener for Tcp {
                 .await
                 .map_err(|e| ListenError::Unknown(anyhow!(e)))?;
 
+            std::mem::drop(reader);
+            
             let action = match buf[0] {
                 ActionID::PLAYER_READY => self.ready_handler()
                     .await

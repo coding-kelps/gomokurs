@@ -19,7 +19,7 @@ async fn main() {
         },
     };
 
-    let subscriber = tracing_subscriber::fmt().with_max_level(tracing::Level::DEBUG).finish();
+    let subscriber = tracing_subscriber::fmt().with_max_level(tracing::Level::TRACE).finish();
     let _ = tracing::subscriber::set_global_default(subscriber);
 
     let black_cfg = match PlayerConfiguration::new(&cli.black_file) {
