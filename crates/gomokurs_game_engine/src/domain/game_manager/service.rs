@@ -138,12 +138,19 @@ where
             match self.board.play_move(player.color, position).await {
                 Ok(res) => {
                     if let Some(end) = res {
+                        player.notifier.notify_end()
+                            .await
+                            .map_err(|error| Error::NotifyError { error, color: player.color })?;
+                        opponent_player.notifier.notify_end()
+                            .await
+                            .map_err(|error| Error::NotifyError { error, color: opponent_player.color })?;
+
                         return Ok(Some(end));
                     } else {
                         opponent_player.notifier.notify_turn(position)
                             .await
                             .map_err(|error| Error::NotifyError { error, color: opponent_player.color })?;
-
+                        
                         player.timer.pause().await;
                         opponent_player.timer.pause().await;
                     }
