@@ -3,7 +3,7 @@ use clap::Parser;
 use gomokurs_game_engine::domain::board_state_manager::{BoardStateManager, models::BoardSize};
 use gomokurs_game_engine::domain::game_manager::GameManager;
 use gomokurs_game_engine::domain::player_interfaces_manager::{PlayerInterfacesManager, PlayerInterfacesManagerService};
-use std::sync::Arc;
+use std::{str::FromStr, sync::Arc};
 use tokio::time::Duration;
 
 #[tokio::main]
@@ -19,7 +19,16 @@ async fn main() {
         },
     };
 
-    let subscriber = tracing_subscriber::fmt().with_max_level(tracing::Level::TRACE).finish();
+    let log_level = match tracing::Level::from_str(&cli.log_level) {
+        Ok(lvl) => lvl,
+        Err(e) => {
+            println!("error: {}", e);
+
+            return
+        }
+    };
+
+    let subscriber = tracing_subscriber::fmt().with_max_level(log_level).finish();
     let _ = tracing::subscriber::set_global_default(subscriber);
 
     let black_cfg = match PlayerConfiguration::new(&cli.black_file) {
@@ -65,8 +74,9 @@ async fn main() {
     let game = GameManager::new(
         black_player.clone(),
         white_player.clone(), 
-        gomoku, Duration::from_secs(30),
-        Duration::from_secs(180),
+        gomoku,
+        Duration::from_secs(cli.turn_duration),
+        Duration::from_secs(cli.match_duration),
     );
     let mut players_interface = PlayerInterfacesManager::new();
     let game_end = players_interface.run(black_player, white_player, game).await.unwrap();
