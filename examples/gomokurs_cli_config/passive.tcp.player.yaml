@@ -1,0 +1,4 @@
+protocol:
+  tcp:
+    passive:
+      address: localhost:49912
