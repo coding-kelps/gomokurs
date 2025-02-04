@@ -43,12 +43,12 @@ pub struct Tcp {
 }
 
 pub struct CreateTcpInterfaceConfiguration {
-    pub player_address: String,
+    pub stream: TcpStream
 }
 
 #[derive(Debug, Error)]
 pub enum CreateTcpInterfaceError {
-    #[error("create tcp client error: `{0}`")]
+    #[error("create tcp interface error: `{0}`")]
     CreateClientError(#[from] tokio::io::Error),
     #[error("manager tcp player interface version `{manager_version}` is incompatible with player manager interface version `{player_version}`")]
     IncompatibleProtocolError{
@@ -59,8 +59,7 @@ pub enum CreateTcpInterfaceError {
 
 impl Tcp {
     pub async fn new(cfg: CreateTcpInterfaceConfiguration) -> Result<Self, CreateTcpInterfaceError> {
-        let stream = TcpStream::connect(cfg.player_address).await?;
-        let (mut reader, mut writer) = split(stream);
+        let (mut reader, mut writer) = split(cfg.stream);
 
         let mut buf = [0u8; 1];
         reader.read_exact(&mut buf).await?;
