@@ -2,6 +2,7 @@ use gomokurs_game_engine::{adapters::player_interfaces::{local::{Local, local::C
 use gomokurs_game_engine::domain::game_manager::models::{PlayerColor, PlayerAction};
 use gomokurs_game_engine::domain::player_interfaces_manager::models::ListenError;
 use tokio::sync::mpsc::Sender;
+use tokio::net::{TcpStream, TcpListener};
 use gomokurs_game_engine::domain::board_state_manager::models::Position;
 use gomokurs_game_engine::domain::game_manager::models::{RelativeTurn, Information, NotifyError};
 use crate::configuration::player_configuration::{PlayerConfiguration, ProtocolConfiguration, TcpConfiguration};
@@ -18,6 +19,8 @@ pub enum CreatePlayerInterfaceFromCfgError {
     Local(#[from] CreateLocalProgramError),
     #[error(transparent)]
     Tcp(#[from] CreateTcpInterfaceError),
+    #[error("tcp connection error: `{0}`")]
+    CreateClientError(#[from] tokio::io::Error),
 }
 
 pub async fn create_player_interface_from_cfg(cfg: PlayerConfiguration) -> Result<PlayerInterface, CreatePlayerInterfaceFromCfgError>
@@ -29,15 +32,25 @@ pub async fn create_player_interface_from_cfg(cfg: PlayerConfiguration) -> Resul
         ProtocolConfiguration::Tcp(tcp_cfg) => {
             match tcp_cfg {
                 TcpConfiguration::Active(active_tcp_cfg) => {
+                    let stream = TcpStream::connect(active_tcp_cfg.address).await?;
+
                     let tcp_interface_cfg = CreateTcpInterfaceConfiguration{
-                        player_address: active_tcp_cfg.address,
+                        stream: stream,
                     };
 
                     Ok(PlayerInterface::Tcp(Tcp::new(tcp_interface_cfg).await?))
 
                 },
-                TcpConfiguration::Passive(_) => {
-                    unimplemented!();
+                TcpConfiguration::Passive(passive_tcp_cfg) => {
+                    let listener = TcpListener::bind(passive_tcp_cfg.address).await?;
+
+                    let (stream, _) = listener.accept().await?;
+
+                    let tcp_interface_cfg = CreateTcpInterfaceConfiguration{
+                        stream: stream,
+                    };
+
+                    Ok(PlayerInterface::Tcp(Tcp::new(tcp_interface_cfg).await?))
                 },
             }
         }
