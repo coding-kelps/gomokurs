@@ -1,4 +1,4 @@
 protocol:
   tcp:
     passive:
-      address: localhost:49912
+      address: 127.0.0.1:49912
