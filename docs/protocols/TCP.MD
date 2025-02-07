@@ -1,270 +1,392 @@
-# Gomokurs Protocol over TCP
+# Gomokurs Protocol over TCP - Version 0.1.0
 
 ## Overview
 
-This document details the protocol used to communicate actions between the manager and the players over TCP.
-This protocol has been heavily inspired by the [Gomoku AI Protocol](https://plastovicka.github.io/protocl2en.htm) used by the [Plastovicka's Piskvork software](https://github.com/plastovicka/Piskvork).
+This document describes the protocol used to exchange actions between the **manager** and the **players** over TCP.  
+It is heavily inspired by the [Gomoku AI Protocol](https://plastovicka.github.io/protocl2en.htm) used by [Plastovicka's Piskvork software](https://github.com/plastovicka/Piskvork).
 
 ## Actions
 
-The requests and response send by the manager to a player and by the player to the manager are referred as "actions".  
-You find in the following sections the complete list of actions that can be taken by the manager and the players.  
-Each actions is identified by its binary identifier which is systematically send in first.
+All requests and responses exchanged between the manager and a player are referred to as **actions**.  
+The following sections list all possible actions that can be performed by either the manager or the players.  
+Each action is identified by its binary identifier, which is always sent first.
 
-### Manager's Actions
+---
 
-#### PROTOCOL COMPATIBLE
+## Manager’s Actions
+
+### PROTOCOL COMPATIBLE
+
+#### Summary
+
+The **PROTOCOL COMPATIBLE** action is sent by the manager in response to a player’s [PROTOCOL VERSION](#protocol-version) action. It informs the player that their protocol versions are compatible and that the session can proceed.
+
+#### Content
 
 ```
 0x00
 ```
 
-#### START
+---
 
-##### Summary
+### START
 
-The START action is used to communicate to a player the initial configuration of the board that it should init.  
-The manager will then expect the player to respond with a [READY action](#ready).
+#### Summary
 
-##### Content
+The **START** action instructs a player to initialize a board of a given size.  
+After sending **START**, the manager expects the player to reply with a [READY](#ready) action.
+
+#### Content
 
 ```
 0x01 [START_SIZE]
 ```
 
-- [START_SIZE],     1 byte big endian unsigned integer:
-    The size of the gomoku square board in both X and Y.
+- **[START_SIZE]** (1-byte big-endian unsigned integer)  
+  The size of the Gomoku board (width and height).
 
-#### TURN
+---
 
-##### Summary
+### TURN
 
-The TURN action is used to communicate to a player its opponent turn.
-The manager will then expect the player to respond with a [PLAY action](#play).
+#### Summary
 
-##### Content
+The **TURN** action communicates the opponent’s last move to the player.  
+After sending **TURN**, the manager expects the player to reply with a [PLAY](#play) action.
+
+#### Content
 
 ```
 0x02 [X] [Y]
 ```
 
-- [X],              1 byte big endian unsigned integer:
-    The position of the opponent play in the gomoku board on the X axis.
-- [Y],              1 byte big endian unsigned integer:
-    The position of the opponent play in the gomoku board on the Y axis.
+- **[X]** (1-byte big-endian unsigned integer)  
+  The X-position of the opponent’s move.
+- **[Y]** (1-byte big-endian unsigned integer)  
+  The Y-position of the opponent’s move.
 
-#### BEGIN
+---
 
-##### Summary
+### BEGIN
 
-The BEGIN action is used to communicate to a player that he is the first player to play.
-The manager will then expect the player to respond with a [PLAY action](#play).
+#### Summary
 
-##### Content
+The **BEGIN** action notifies a player that it is the first to move.  
+After sending **BEGIN**, the manager expects the player to reply with a [PLAY](#play) action.
+
+#### Content
 
 ```
 0x03
 ```
 
-#### BOARD
+---
 
-##### Summary
+### BOARD
 
-The BOARD action is used to communicate to a player an history of turns that he should register to the board.
-The manager will then expect the player to respond with a [PLAY action](#play).
+#### Summary
 
-##### Content
+The **BOARD** action provides a list of past moves (an initial history) that the player should register on the board.  
+After sending **BOARD**, the manager expects the player to reply with a [PLAY](#play) action.
+
+#### Content
 
 ```
 0x04 [NB_TURN] [TURNS: [[X] [Y] [FIELD]], ...]
 ```
 
-- [NB_TURN],        4 bytes big endian unsigned integer:
-- [TURNS],          4 bytes big endian unsigned integer:
-    - [X],          1 byte big endian unsigned integer:
-    - [Y],          1 byte big endian unsigned integer:
-    - [FIELD]       1 byte big endian unsigned integer:
+- **[NB_TURN]** (4-byte big-endian unsigned integer)  
+  The number of turns provided in this **BOARD** action.
+- **[TURNS]**  
+  An array of **NB_TURN** records, each consisting of:
+  - **[X]** (1-byte big-endian unsigned integer)  
+    The X-position of the move.
+  - **[Y]** (1-byte big-endian unsigned integer)  
+    The Y-position of the move.
+  - **[FIELD]** (1-byte big-endian unsigned integer)  
+    Indicates which player made the move, relative to the recipient:
+    - `1`: The recipient’s own move
+    - `2`: The opponent’s move
 
-#### INFO
+---
 
-##### Summary
+### INFO
 
-The INFO action is used to communicate an information as a string to a player.
-The manager will then expect the player to respond with a [PLAY action](#play).
+#### Summary
 
-##### Content
+The **INFO** action transmits an informational message (as a string) to the player.  
+After sending **INFO**, the manager expects the player to reply with a [PLAY](#play) action.
+
+> **Note:** Due to standard I/O compatibility, the information string must not contain any newline characters.
+
+#### Content
 
 ```
 0x05 [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
-- [PAYLOAD_SIZE],   4 bytes big endian unsigned integer:
-- [PAYLOAD],        N bytes UTF-8 string:
+- **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
+  The size in bytes of the payload.
+- **[PAYLOAD]** (N-byte UTF-8 string)  
+  The informational message.
 
-#### END
+---
 
-##### Summary
+### END
 
-The END is used to communicate the termination of the session to the player.
-Following this action, the manager will not expect anymore actions from the player.
+#### Summary
 
-##### Content
+The **END** action indicates that the session is terminated.  
+After **END** is sent, the manager does not expect any further actions from the player.
+
+#### Content
 
 ```
 0x06
 ```
 
-#### ABOUT
+---
 
-##### Summary
+### ABOUT
 
-The ABOUT action is used to requests to a player its metadata.
-The manager will then expect the player to respond with a [PLAYER DESCRIPTION action](#player-description).
+#### Summary
 
-##### Content
+The **ABOUT** action requests metadata from a player.  
+After sending **ABOUT**, the manager expects the player to reply with a [PLAYER DESCRIPTION](#player-description) action.
+
+#### Content
 
 ```
 0x07
 ```
 
-#### UNKNOWN
+---
 
-##### Summary
+### UNKNOWN
 
-##### Content
+#### Summary
+
+The **UNKNOWN** action is sent by the manager if it does not recognize the player’s last action. Immediately after sending **UNKNOWN**, the manager terminates the session.
+
+> **Note:** The error message must not contain any newline characters.
+
+#### Content
 
 ```
 0x08 [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
-- [PAYLOAD_SIZE],   4 bytes big endian unsigned integer:
-- [PAYLOAD],        N bytes UTF-8 string:
+- **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
+  The size in bytes of the payload.
+- **[PAYLOAD]** (N-byte UTF-8 string)  
+  The error message.
 
-#### ERROR
+---
 
-##### Summary
+### ERROR
 
-##### Content
+#### Summary
+
+The **ERROR** action is sent by the manager if there is an error in the player’s last action. Immediately after sending **ERROR**, the manager terminates the session.
+
+> **Note:** The error message must not contain any newline characters.
+
+#### Content
 
 ```
 0x09 [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
-- [PAYLOAD_SIZE],   4 bytes big endian unsigned integer:
-- [PAYLOAD],        N bytes UTF-8 string:
+- **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
+  The size in bytes of the payload.
+- **[PAYLOAD]** (N-byte UTF-8 string)  
+  The error message.
 
-### Player's Actions
+---
 
-#### PROTOCOL VERSION
+## Player’s Actions
 
-##### Summary
+### PROTOCOL VERSION
 
-##### Content
+#### Summary
+
+The **PROTOCOL VERSION** action is sent by the player to communicate its protocol version to the manager. This step ensures compatibility.  
+The version is sent as a simple string.  
+After sending **PROTOCOL VERSION**, the player expects the manager to respond with either [PROTOCOL COMPATIBLE](#protocol-compatible) (if the versions are compatible) or [ERROR](#error) (if they are not).  
+
+The **PROTOCOL VERSION** action is expected to be the first action a player sends so that both the manager and the player can confirm protocol compatibility before proceeding.
+
+#### Content
 
 ```
 0x0A [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
-- [PAYLOAD_SIZE],   4 bytes big endian unsigned integer:
-- [PAYLOAD],        N bytes UTF-8 string:
+- **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
+  The size in bytes of the payload.
+- **[PAYLOAD]** (N-byte UTF-8 string)  
+  The protocol version string.
 
-#### READY
+---
 
-##### Summary
+### READY
 
-##### Content
+#### Summary
+
+The **READY** action is sent by the player in response to a [START](#start) action to confirm that it has initialized the game state and is ready to play.
+
+#### Content
 
 ```
 0x0B
 ```
 
-#### PLAY
+---
 
-##### Summary
+### PLAY
 
-##### Content
+#### Summary
+
+The **PLAY** action communicates the player’s move to the manager.  
+It is sent in response to [BEGIN](#begin), [TURN](#turn), or [BOARD](#board) actions.
+
+#### Content
 
 ```
 0x0C [X] [Y]
 ```
 
-- [X],              1 byte big endian unsigned integer: The 
-- [Y],              1 byte big endian unsigned integer: The
+- **[X]** (1-byte big-endian unsigned integer)  
+  The X-position of the player’s chosen move.
+- **[Y]** (1-byte big-endian unsigned integer)  
+  The Y-position of the player’s chosen move.
 
-#### PLAYER DESCRIPTION
+---
 
-##### Summary
+### PLAYER DESCRIPTION
 
-##### Content
+#### Summary
+
+The **PLAYER DESCRIPTION** action is sent by the player in response to the manager’s [ABOUT](#about) action, providing metadata about the player.
+
+The metadata is provided as a list of key-value pairs, separated by commas (and optional spaces), for example:
+
+```
+name="SomeBrain", version="1.0", author="Nymand", country="USA"
+```
+
+> **Note:** The metadata must not contain any newline characters.
+
+#### Content
 
 ```
 0x0D [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
-- [PAYLOAD_SIZE],   4 bytes big endian unsigned integer:
-- [PAYLOAD],        N bytes UTF-8 string:
+- **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
+  The size in bytes of the payload.
+- **[PAYLOAD]** (N-byte UTF-8 string)  
+  The player’s metadata.
 
-#### UNKNOWN
+---
 
-##### Summary
+### UNKNOWN
 
-##### Content
+#### Summary
+
+The **UNKNOWN** action is sent by the player if it does not recognize the manager’s last action. Immediately after sending **UNKNOWN**, the player terminates the session.
+
+> **Note:** The error message must not contain any newline characters.
+
+#### Content
 
 ```
 0x0E [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
-- [PAYLOAD_SIZE],   4 bytes big endian unsigned integer:
-- [PAYLOAD],        N bytes UTF-8 string:
+- **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
+  The size in bytes of the payload.
+- **[PAYLOAD]** (N-byte UTF-8 string)  
+  The error message.
 
-#### ERROR
+---
 
-##### Summary
+### ERROR
 
-##### Content
+#### Summary
+
+The **ERROR** action is sent by the player if there is an error in the manager’s last action. Immediately after sending **ERROR**, the player terminates the session.
+
+> **Note:** The error message must not contain any newline characters.
+
+#### Content
 
 ```
 0x0F [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
-- [PAYLOAD_SIZE],   4 bytes big endian unsigned integer:
-- [PAYLOAD],        N bytes UTF-8 string:
+- **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
+  The size in bytes of the payload.
+- **[PAYLOAD]** (N-byte UTF-8 string)  
+  The error message.
 
-#### MESSAGE
+---
 
-##### Summary
+### MESSAGE
 
-##### Content
+#### Summary
+
+> **Note:** The **MESSAGE** action is currently **not supported** by the Gomokurs manager. It is included here only for compatibility with the [Gomoku AI Protocol](https://plastovicka.github.io/protocl2en.htm).
+
+The **MESSAGE** action is used by the player to communicate a message intended for the end-user of the manager.
+
+#### Content
 
 ```
 0x10 [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
-- [PAYLOAD_SIZE],   4 bytes big endian unsigned integer:
-- [PAYLOAD],        N bytes UTF-8 string:
+- **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
+  The size in bytes of the payload.
+- **[PAYLOAD]** (N-byte UTF-8 string)  
+  The message.
 
-#### DEBUG
+---
 
-##### Summary
+### DEBUG
 
-##### Content
+#### Summary
+
+The **DEBUG** action is used by the player to send a debugging message to the manager. The manager is expected to log this message but not necessarily display it to the user.
+
+#### Content
 
 ```
 0x11 [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
-- [PAYLOAD_SIZE],   4 bytes big endian unsigned integer:
-- [PAYLOAD],        N bytes UTF-8 string:
+- **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
+  The size in bytes of the payload.
+- **[PAYLOAD]** (N-byte UTF-8 string)  
+  The debug message.
 
-#### SUGGESTION
+---
 
-##### Summary
+### SUGGESTION
 
-##### Content
+#### Summary
+
+> **Note:** The **SUGGESTION** action is currently **not supported** by the Gomokurs manager. It is included here only for compatibility with the [Gomoku AI Protocol](https://plastovicka.github.io/protocl2en.htm).
+
+The **SUGGESTION** action is used by the player to suggest a move to the user of the Gomokurs server.
+
+#### Content
 
 ```
 0x12 [X] [Y]
 ```
 
-- [X],              1 byte big endian unsigned integer: The 
-- [Y],              1 byte big endian unsigned integer: The
+- **[X]** (1-byte big-endian unsigned integer)  
+  The X-position of the suggested move.
+- **[Y]** (1-byte big-endian unsigned integer)  
+  The Y-position of the suggested move.
