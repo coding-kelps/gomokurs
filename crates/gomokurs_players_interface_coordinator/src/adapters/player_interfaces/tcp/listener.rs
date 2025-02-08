@@ -4,7 +4,7 @@
 use crate::adapters::player_interfaces::tcp::tcp::{Tcp, ActionID};
 use crate::domain::player_interfaces_manager::ports::PlayerListener;
 use crate::domain::player_interfaces_manager::models::ListenError;
-use crate::domain::game_manager::models::{PlayerColor, PlayerAction, Position, PlayerDescription};
+use gomokurs_game_engine::domain::game_manager::models::{PlayerColor, PlayerAction, Position, PlayerDescription};
 use tokio::sync::mpsc::Sender;
 use tokio::io::{self, AsyncReadExt};
 use std::collections::HashMap;

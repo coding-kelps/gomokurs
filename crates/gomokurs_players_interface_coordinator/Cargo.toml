@@ -1,11 +1,16 @@
 [package]
-name = "gomokurs-game-engine"
+name = "gomokurs-players-interface-coordinator"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "gomokurs_game_engine"
+name = "gomokurs_players_interface_coordinator"
 path = "src/lib.rs"
+
+[features]
+default = ["local", "tcp"]
+local = []
+tcp = []
 
 [dependencies]
 anyhow.workspace = true
@@ -15,3 +20,5 @@ thiserror.workspace = true
 tokio.workspace = true
 tokio-test.workspace = true
 tracing.workspace = true
+
+gomokurs-game-engine.workspace = true

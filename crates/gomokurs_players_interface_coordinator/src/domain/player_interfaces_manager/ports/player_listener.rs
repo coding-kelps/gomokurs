@@ -3,7 +3,8 @@
 //! This module defines the service port for the Player Listener, responsible
 //! for listening to player actions and forwarding them to a specified channel.
 
-use crate::domain::game_manager::models::{PlayerColor, PlayerAction};
+use gomokurs_game_engine::domain::game_manager::models::{PlayerAction, PlayerColor};
+pub use gomokurs_game_engine::domain::game_manager::ports::PlayerNotifier;
 use crate::domain::player_interfaces_manager::models::ListenError;
 use tokio::sync::mpsc::Sender;
 

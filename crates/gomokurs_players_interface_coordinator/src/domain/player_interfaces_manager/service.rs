@@ -3,12 +3,12 @@
 //! This service manages player listener adapters, linking them to the
 //! corresponding `GameManager` handlers.
 
-use crate::domain::player_interfaces_manager::ports::{PlayerInterfacesManagerService, PlayerListener};
-use crate::domain::game_manager::ports::{GameManagerService, PlayerNotifier};
+use crate::domain::player_interfaces_manager::ports::{PlayerInterfacesManagerService, PlayerListener, PlayerNotifier};
+use gomokurs_game_engine::domain::game_manager::ports::GameManagerService;
 use tokio::task::JoinSet;
 use tokio::sync::mpsc::channel;
-use crate::domain::game_manager::models::{PlayerColor, PlayerAction};
-use crate::domain::board_state_manager::models::GameEnd;
+use gomokurs_game_engine::domain::game_manager::models::{PlayerColor, PlayerAction};
+use gomokurs_game_engine::domain::board_state_manager::models::GameEnd;
 use crate::domain::player_interfaces_manager::models::Error;
 use std::sync::Arc;
 
