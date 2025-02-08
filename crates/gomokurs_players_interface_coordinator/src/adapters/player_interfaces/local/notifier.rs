@@ -2,8 +2,8 @@
 //! local player interface.
 
 use crate::adapters::player_interfaces::local::Local;
-use crate::domain::game_manager::ports::PlayerNotifier;
-use crate::domain::game_manager::models::{Position, NotifyError, RelativeTurn, Information};
+use gomokurs_game_engine::domain::game_manager::ports::PlayerNotifier;
+use gomokurs_game_engine::domain::game_manager::models::{Position, NotifyError, RelativeTurn, Information};
 use tokio::io::AsyncWriteExt;
 use anyhow::anyhow;
 

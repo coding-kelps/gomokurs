@@ -4,8 +4,8 @@
 //! `PlayerInterfacesManager`, a domain service responsible for managing player
 //! listeners and handling player actions.
 
-pub use crate::domain::board_state_manager::models::{PlayerColor, Position};
-pub use crate::domain::game_manager::models::Error as GameManagerError;
+pub use gomokurs_game_engine::domain::board_state_manager::models::{PlayerColor, Position};
+pub use gomokurs_game_engine::domain::game_manager::models::Error as GameManagerError;
 use tokio::task::JoinError;
 use thiserror::Error;
 

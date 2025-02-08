@@ -2,8 +2,8 @@
 //! tcp player interface.
 
 use crate::adapters::player_interfaces::tcp::tcp::{Tcp, ActionID};
-use crate::domain::game_manager::ports::PlayerNotifier;
-use crate::domain::game_manager::models::{Information, NotifyError, Position, RelativeField, RelativeTurn};
+use gomokurs_game_engine::domain::game_manager::ports::PlayerNotifier;
+use gomokurs_game_engine::domain::game_manager::models::{Information, NotifyError, Position, RelativeField, RelativeTurn};
 use tokio::io::AsyncWriteExt;
 use anyhow::anyhow;
 

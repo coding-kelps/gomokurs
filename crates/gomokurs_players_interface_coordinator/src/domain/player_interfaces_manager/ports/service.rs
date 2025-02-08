@@ -4,10 +4,10 @@
 //! listening to the actions of both the black and white players and forwarding
 //! them to the GameManagerService for handling.
 
-use crate::domain::board_state_manager::models::GameEnd;
-use crate::domain::game_manager::ports::GameManagerService;
+use gomokurs_game_engine::domain::board_state_manager::models::GameEnd;
+use gomokurs_game_engine::domain::game_manager::ports::GameManagerService;
 use crate::domain::player_interfaces_manager::ports::PlayerListener;
-use crate::domain::game_manager::ports::PlayerNotifier;
+use gomokurs_game_engine::domain::game_manager::ports::PlayerNotifier;
 use crate::domain::player_interfaces_manager::models::Error;
 use std::sync::Arc;
 
