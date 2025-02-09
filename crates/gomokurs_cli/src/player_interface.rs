@@ -1,5 +1,5 @@
 use gomokurs_players_interface_coordinator::adapters::player_interfaces::{local::{local::CreateLocalProgramError, Local}, tcp::{tcp::{CreateTcpInterfaceConfiguration, CreateTcpInterfaceError}, Tcp}};
-use gomokurs_game_engine::domain::game_manager::models::{PlayerColor, PlayerAction};
+use gomokurs_game_engine::domain::game_manager::models::{PlayerAction, PlayerColor, RelativeGameEnd};
 use gomokurs_players_interface_coordinator::domain::player_interfaces_manager::models::ListenError;
 use gomokurs_players_interface_coordinator::domain::player_interfaces_manager::ports::{PlayerListener, PlayerNotifier};
 use tokio::sync::mpsc::Sender;
@@ -83,6 +83,15 @@ impl PlayerNotifier for PlayerInterfaceOption {
         }
     }
 
+    async fn notify_restart(
+        &self,
+    ) -> Result<(), NotifyError> {
+        match self {
+            PlayerInterfaceOption::Local(local) => local.notify_restart().await,
+            PlayerInterfaceOption::Tcp(tcp)     => tcp.notify_restart().await,
+        }
+    }
+
     async fn notify_turn(
         &self,
         position: Position,
@@ -119,6 +128,16 @@ impl PlayerNotifier for PlayerInterfaceOption {
         match self {
             PlayerInterfaceOption::Local(local) => local.notify_info(info).await,
             PlayerInterfaceOption::Tcp(tcp)     => tcp.notify_info(info).await,
+        }
+    }
+
+    async fn notify_result(
+        &self,
+        result: RelativeGameEnd,
+    ) -> Result<(), NotifyError> {
+        match self {
+            PlayerInterfaceOption::Local(local) => local.notify_result(result).await,
+            PlayerInterfaceOption::Tcp(tcp)     => tcp.notify_result(result).await,
         }
     }
 

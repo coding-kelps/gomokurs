@@ -4,6 +4,7 @@
 use crate::adapters::player_interfaces::local::Local;
 use gomokurs_game_engine::domain::game_manager::ports::PlayerNotifier;
 use gomokurs_game_engine::domain::game_manager::models::{Position, NotifyError, RelativeTurn, Information};
+use gomokurs_game_engine::domain::game_manager::models::RelativeGameEnd;
 use tokio::io::AsyncWriteExt;
 use anyhow::anyhow;
 
@@ -17,6 +18,24 @@ impl PlayerNotifier for Local {
 
         writer
             .write_all(format!("START {}\n", size).as_bytes())
+            .await
+            .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
+
+        writer
+            .flush()
+            .await
+            .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
+
+        Ok(())
+    }
+
+    async fn notify_restart(
+        &self
+    ) -> Result<(), NotifyError> {
+        let mut writer = self.writer.lock().await;
+
+        writer
+            .write_all(b"RESTART\n")
             .await
             .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
 
@@ -107,6 +126,27 @@ impl PlayerNotifier for Local {
             .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
 
         Ok(())
+    }
+
+    async fn notify_result(
+            &self,
+            result: RelativeGameEnd,
+        ) -> Result<(), NotifyError> {
+            let mut writer = self.writer.lock().await;
+
+
+
+            writer
+                .write_all(format!("RESULT {}\n", result).as_bytes())
+                .await
+                .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
+    
+            writer
+                .flush()
+                .await
+                .map_err(|e| NotifyError::Unknown(anyhow!(e)))?;
+    
+            Ok(())
     }
 
     async fn notify_end(
