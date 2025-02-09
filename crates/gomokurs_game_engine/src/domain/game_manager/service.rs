@@ -138,9 +138,41 @@ where
             match self.board.play_move(player.color, position).await {
                 Ok(res) => {
                     if let Some(end) = res {
+                        match end {
+                            GameEnd::Draw => {
+                                player.notifier.notify_result(RelativeGameEnd::Draw)
+                                    .await
+                                    .map_err(|error| Error::NotifyError { error, color: player.color })?;
+
+                                opponent_player.notifier.notify_result(RelativeGameEnd::Draw)
+                                    .await
+                                    .map_err(|error| Error::NotifyError { error, color: opponent_player.color })?;
+                            },
+                            GameEnd::Win(winner) => {
+                                if winner == player.color {
+                                    player.notifier.notify_result(RelativeGameEnd::Win)
+                                        .await
+                                        .map_err(|error| Error::NotifyError { error, color: player.color })?;
+
+                                    opponent_player.notifier.notify_result(RelativeGameEnd::Loose)
+                                        .await
+                                        .map_err(|error| Error::NotifyError { error, color: opponent_player.color })?;
+                                } else {
+                                    player.notifier.notify_result(RelativeGameEnd::Loose)
+                                        .await
+                                        .map_err(|error| Error::NotifyError { error, color: player.color })?;
+
+                                    opponent_player.notifier.notify_result(RelativeGameEnd::Win)
+                                        .await
+                                        .map_err(|error| Error::NotifyError { error, color: opponent_player.color })?;
+                                }
+                            }
+                        }
+
                         player.notifier.notify_end()
                             .await
                             .map_err(|error| Error::NotifyError { error, color: player.color })?;
+                        
                         opponent_player.notifier.notify_end()
                             .await
                             .map_err(|error| Error::NotifyError { error, color: opponent_player.color })?;
