@@ -1,7 +1,7 @@
 //! Defines the PlayerNotifier port used for communication with a player.
 
 use crate::domain::board_state_manager::models::Position;
-use crate::domain::game_manager::models::{RelativeTurn, Information, NotifyError};
+use crate::domain::game_manager::models::{RelativeTurn, Information, RelativeGameEnd, NotifyError};
 
 /// A trait representing notifications sent to a player from the game manager.
 /// 
@@ -18,6 +18,12 @@ pub trait PlayerNotifier: Send + Sync + 'static {
     fn notify_start(
         &self,
         size: u8,
+    ) -> impl std::future::Future<Output = Result<(), NotifyError>>;
+
+    /// Notifies the player of the to initialize its board with the same
+    /// configuration as the previous game.
+    fn notify_restart(
+        &self
     ) -> impl std::future::Future<Output = Result<(), NotifyError>>;
 
     /// Notifies the player about the opponent's turn.
@@ -54,6 +60,16 @@ pub trait PlayerNotifier: Send + Sync + 'static {
     fn notify_info(
         &self,
         info: Information,
+    ) -> impl std::future::Future<Output = Result<(), NotifyError>>;
+
+    /// Notifies the game result to the player.
+    /// 
+    /// # Arguments
+    /// 
+    /// + `result` - The game result.
+    fn notify_result(
+        &self,
+        result: RelativeGameEnd,
     ) -> impl std::future::Future<Output = Result<(), NotifyError>>;
 
     /// Notifies the player that the game has finished.

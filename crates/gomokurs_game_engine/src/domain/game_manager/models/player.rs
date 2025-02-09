@@ -159,15 +159,37 @@ impl fmt::Display for Information {
             Information::Evaluate{x, y} => write!(f, "evaluate {},{}", x, y),
             Information::Folder(p) => {
                 let path = p.clone()
-                    .into_os_string()
-                    .into_string()
-                    .expect("failed to convert persistent folder path into str");
+                .into_os_string()
+                .into_string()
+                .expect("failed to convert persistent folder path into str");
+            
+            write!(f, "folder {}", path)
+        },
+    }
+}
+}
 
-                write!(f, "folder {}", path)
-            },
+/// Represents a game end from a player perspective.
+///
+/// Used when the manager sends the `RESULT` command to a player.
+#[derive(Debug, Clone)]
+pub enum RelativeGameEnd {
+    Draw,
+    Win,
+    Loose,
+}
+
+impl fmt::Display for RelativeGameEnd {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+
+        match &self {
+            RelativeGameEnd::Draw => write!(f, "0"),
+            RelativeGameEnd::Win => write!(f, "1"),
+            RelativeGameEnd::Loose => write!(f, "2"),
         }
     }
 }
+
 
 /// Errors that may occur in the Game Manager service.
 #[derive(Debug, Error)]
