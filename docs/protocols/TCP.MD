@@ -1,4 +1,4 @@
-# Gomokurs Protocol over TCP - Version 0.1.0
+# Gomokurs Protocol over TCP - Version 0.2.0
 
 ## Overview
 
@@ -47,6 +47,21 @@ After sending **START**, the manager expects the player to reply with a [READY](
 
 ---
 
+### RESTART
+
+#### Summary
+
+The **RESTART** action instructs a player to initialize a board of a given size with same configuration as the previous game.  
+After sending **RESTART**, the manager expects the player to reply with a [READY](#ready) action.
+
+#### Content
+
+```
+0x02
+```
+
+---
+
 ### TURN
 
 #### Summary
@@ -57,7 +72,7 @@ After sending **TURN**, the manager expects the player to reply with a [PLAY](#p
 #### Content
 
 ```
-0x02 [X] [Y]
+0x03 [X] [Y]
 ```
 
 - **[X]** (1-byte big-endian unsigned integer)  
@@ -77,7 +92,7 @@ After sending **BEGIN**, the manager expects the player to reply with a [PLAY](#
 #### Content
 
 ```
-0x03
+0x04
 ```
 
 ---
@@ -92,7 +107,7 @@ After sending **BOARD**, the manager expects the player to reply with a [PLAY](#
 #### Content
 
 ```
-0x04 [NB_TURN] [TURNS: [[X] [Y] [FIELD]], ...]
+0x05 [NB_TURN] [TURNS: [[X] [Y] [FIELD]], ...]
 ```
 
 - **[NB_TURN]** (4-byte big-endian unsigned integer)  
@@ -122,7 +137,7 @@ After sending **INFO**, the manager expects the player to reply with a [PLAY](#p
 #### Content
 
 ```
-0x05 [PAYLOAD_SIZE] [PAYLOAD]
+0x06 [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
 - **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
@@ -142,7 +157,7 @@ After **END** is sent, the manager does not expect any further actions from the 
 #### Content
 
 ```
-0x06
+0x07
 ```
 
 ---
@@ -157,7 +172,7 @@ After sending **ABOUT**, the manager expects the player to reply with a [PLAYER 
 #### Content
 
 ```
-0x07
+0x08
 ```
 
 ---
@@ -173,7 +188,7 @@ The **UNKNOWN** action is sent by the manager if it does not recognize the playe
 #### Content
 
 ```
-0x08 [PAYLOAD_SIZE] [PAYLOAD]
+0x09 [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
 - **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
@@ -194,7 +209,7 @@ The **ERROR** action is sent by the manager if there is an error in the playerâ€
 #### Content
 
 ```
-0x09 [PAYLOAD_SIZE] [PAYLOAD]
+0x0A [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
 - **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
@@ -219,7 +234,7 @@ The **PROTOCOL VERSION** action is expected to be the first action a player send
 #### Content
 
 ```
-0x0A [PAYLOAD_SIZE] [PAYLOAD]
+0x0B [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
 - **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
@@ -238,7 +253,7 @@ The **READY** action is sent by the player in response to a [START](#start) acti
 #### Content
 
 ```
-0x0B
+0x0C
 ```
 
 ---
@@ -253,7 +268,7 @@ It is sent in response to [BEGIN](#begin), [TURN](#turn), or [BOARD](#board) act
 #### Content
 
 ```
-0x0C [X] [Y]
+0x0D [X] [Y]
 ```
 
 - **[X]** (1-byte big-endian unsigned integer)  
@@ -280,7 +295,7 @@ name="SomeBrain", version="1.0", author="Nymand", country="USA"
 #### Content
 
 ```
-0x0D [PAYLOAD_SIZE] [PAYLOAD]
+0x0E [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
 - **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
@@ -301,7 +316,7 @@ The **UNKNOWN** action is sent by the player if it does not recognize the manage
 #### Content
 
 ```
-0x0E [PAYLOAD_SIZE] [PAYLOAD]
+0x0F [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
 - **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
@@ -322,7 +337,7 @@ The **ERROR** action is sent by the player if there is an error in the managerâ€
 #### Content
 
 ```
-0x0F [PAYLOAD_SIZE] [PAYLOAD]
+0x10 [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
 - **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
@@ -343,7 +358,7 @@ The **MESSAGE** action is used by the player to communicate a message intended f
 #### Content
 
 ```
-0x10 [PAYLOAD_SIZE] [PAYLOAD]
+0x11 [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
 - **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
@@ -362,7 +377,7 @@ The **DEBUG** action is used by the player to send a debugging message to the ma
 #### Content
 
 ```
-0x11 [PAYLOAD_SIZE] [PAYLOAD]
+0x12 [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
 - **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
@@ -383,7 +398,7 @@ The **SUGGESTION** action is used by the player to suggest a move to the user of
 #### Content
 
 ```
-0x12 [X] [Y]
+0x13 [X] [Y]
 ```
 
 - **[X]** (1-byte big-endian unsigned integer)  
