@@ -147,6 +147,26 @@ After sending **INFO**, the manager expects the player to reply with a [PLAY](#p
 
 ---
 
+### RESULT
+
+#### Summary
+
+The **RESULT** action provides the game result to the player.
+
+#### Content
+
+```
+0x07 [RESULT]
+```
+
+- **[RESULT]** (1-byte big-endian unsigned integer)  
+  Indicates the outcome of the player's game:
+  - `0`: The game ended in a draw  
+  - `1`: The player won the game  
+  - `2`: The player lost the game  
+
+---
+
 ### END
 
 #### Summary
@@ -157,7 +177,7 @@ After **END** is sent, the manager does not expect any further actions from the 
 #### Content
 
 ```
-0x07
+0x08
 ```
 
 ---
@@ -172,7 +192,7 @@ After sending **ABOUT**, the manager expects the player to reply with a [PLAYER 
 #### Content
 
 ```
-0x08
+0x09
 ```
 
 ---
@@ -188,7 +208,7 @@ The **UNKNOWN** action is sent by the manager if it does not recognize the playe
 #### Content
 
 ```
-0x09 [PAYLOAD_SIZE] [PAYLOAD]
+0x0A [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
 - **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
@@ -209,7 +229,7 @@ The **ERROR** action is sent by the manager if there is an error in the playerâ€
 #### Content
 
 ```
-0x0A [PAYLOAD_SIZE] [PAYLOAD]
+0x0B [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
 - **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
@@ -234,7 +254,7 @@ The **PROTOCOL VERSION** action is expected to be the first action a player send
 #### Content
 
 ```
-0x0B [PAYLOAD_SIZE] [PAYLOAD]
+0x0C [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
 - **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
@@ -253,7 +273,7 @@ The **READY** action is sent by the player in response to a [START](#start) acti
 #### Content
 
 ```
-0x0C
+0x0D
 ```
 
 ---
@@ -268,7 +288,7 @@ It is sent in response to [BEGIN](#begin), [TURN](#turn), or [BOARD](#board) act
 #### Content
 
 ```
-0x0D [X] [Y]
+0x0E [X] [Y]
 ```
 
 - **[X]** (1-byte big-endian unsigned integer)  
@@ -295,7 +315,7 @@ name="SomeBrain", version="1.0", author="Nymand", country="USA"
 #### Content
 
 ```
-0x0E [PAYLOAD_SIZE] [PAYLOAD]
+0x0F [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
 - **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
@@ -316,7 +336,7 @@ The **UNKNOWN** action is sent by the player if it does not recognize the manage
 #### Content
 
 ```
-0x0F [PAYLOAD_SIZE] [PAYLOAD]
+0x10 [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
 - **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
@@ -337,7 +357,7 @@ The **ERROR** action is sent by the player if there is an error in the managerâ€
 #### Content
 
 ```
-0x10 [PAYLOAD_SIZE] [PAYLOAD]
+0x11 [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
 - **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
@@ -358,7 +378,7 @@ The **MESSAGE** action is used by the player to communicate a message intended f
 #### Content
 
 ```
-0x11 [PAYLOAD_SIZE] [PAYLOAD]
+0x12 [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
 - **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
@@ -377,7 +397,7 @@ The **DEBUG** action is used by the player to send a debugging message to the ma
 #### Content
 
 ```
-0x12 [PAYLOAD_SIZE] [PAYLOAD]
+0x13 [PAYLOAD_SIZE] [PAYLOAD]
 ```
 
 - **[PAYLOAD_SIZE]** (4-byte big-endian unsigned integer)  
@@ -398,7 +418,7 @@ The **SUGGESTION** action is used by the player to suggest a move to the user of
 #### Content
 
 ```
-0x13 [X] [Y]
+0x14 [X] [Y]
 ```
 
 - **[X]** (1-byte big-endian unsigned integer)  
