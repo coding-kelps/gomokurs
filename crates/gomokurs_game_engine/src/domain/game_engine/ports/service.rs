@@ -15,4 +15,8 @@ pub trait GameEngineService
         color: PlayerColor,
         position: Position,
     ) -> impl std::future::Future<Output = Result<Option<GameEnd>, Error>>;
+
+    fn reset(
+        &mut self,
+    ) -> impl std::future::Future<Output = Result<(), Error>>;
 }
