@@ -4,8 +4,7 @@
 //! `PlayerInterfacesManager`, a domain service responsible for managing player
 //! listeners and handling player actions.
 
-pub use gomokurs_game_engine::domain::board_state_manager::models::{PlayerColor, Position};
-pub use gomokurs_game_engine::domain::game_manager::models::Error as GameManagerError;
+use crate::domain::coordinator::models::actions::{PlayerColor, GameEngineError};
 use tokio::task::JoinError;
 use thiserror::Error;
 
@@ -21,10 +20,16 @@ pub enum Error {
     JoinError(#[from] JoinError),
     /// An error was returned by a player listener.
     #[error("listener error: `{0}`")]
-    ListenError(#[from] ListenError), 
+    ListenError(#[from] ListenError),
+    /// Error encountered while notifying a player.
+    #[error("failed to notify `{color}`: `{error}`")]
+    NotifyError{
+        error: NotifyError,
+        color: PlayerColor,
+    },
     /// An error propagated from the game manager.
     #[error("game error: `{0}`")]
-    GameError(#[from] GameManagerError),
+    GameError(#[from] GameEngineError),
     /// For implementation-specific error.
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
@@ -36,6 +41,14 @@ pub enum Error {
 #[derive(Debug, Error)]
 pub enum ListenError {
     /// For implementation-specific error.
+    #[error(transparent)]
+    Unknown(#[from] anyhow::Error),
+}
+
+
+/// Errors that may occur while notifying a player.
+#[derive(Debug, Error)]
+pub enum NotifyError {
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
 }
