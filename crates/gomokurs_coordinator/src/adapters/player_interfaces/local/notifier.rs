@@ -3,8 +3,7 @@
 
 use crate::adapters::player_interfaces::local::Local;
 use gomokurs_game_engine::domain::game_manager::ports::PlayerNotifier;
-use gomokurs_game_engine::domain::game_manager::models::{Position, NotifyError, RelativeTurn, Information};
-use gomokurs_game_engine::domain::game_manager::models::RelativeGameEnd;
+use gomokurs_game_engine::domain::game_manager::models::{Position, NotifyError, RelativeTurn, RelativeGameEnd, Information};
 use tokio::io::AsyncWriteExt;
 use anyhow::anyhow;
 

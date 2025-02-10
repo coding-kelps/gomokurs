@@ -1,7 +1,7 @@
-use gomokurs_players_interface_coordinator::adapters::player_interfaces::{local::{local::CreateLocalProgramError, Local}, tcp::{tcp::{CreateTcpInterfaceConfiguration, CreateTcpInterfaceError}, Tcp}};
+use gomokurs_coordinator::adapters::player_interfaces::{local::{local::CreateLocalProgramError, Local}, tcp::{tcp::{CreateTcpInterfaceConfiguration, CreateTcpInterfaceError}, Tcp}};
 use gomokurs_game_engine::domain::game_manager::models::{PlayerAction, PlayerColor, RelativeGameEnd};
-use gomokurs_players_interface_coordinator::domain::player_interfaces_manager::models::ListenError;
-use gomokurs_players_interface_coordinator::domain::player_interfaces_manager::ports::{PlayerListener, PlayerNotifier};
+use gomokurs_coordinator::domain::player_interfaces_manager::models::ListenError;
+use gomokurs_coordinator::domain::player_interfaces_manager::ports::{PlayerListener, PlayerNotifier};
 use tokio::sync::mpsc::Sender;
 use tokio::net::{TcpStream, TcpListener};
 use gomokurs_game_engine::domain::board_state_manager::models::Position;

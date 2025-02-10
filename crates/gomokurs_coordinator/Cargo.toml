@@ -1,10 +1,10 @@
 [package]
-name = "gomokurs-players-interface-coordinator"
+name = "gomokurs-coordinator"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "gomokurs_players_interface_coordinator"
+name = "gomokurs_coordinator"
 path = "src/lib.rs"
 
 [features]

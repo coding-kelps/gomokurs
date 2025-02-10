@@ -24,4 +24,4 @@ config.workspace = true
 # Local crates
 
 gomokurs-game-engine.workspace = true
-gomokurs-players-interface-coordinator.workspace = true
+gomokurs-coordinator.workspace = true

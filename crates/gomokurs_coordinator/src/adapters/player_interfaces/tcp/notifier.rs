@@ -35,7 +35,7 @@ impl PlayerNotifier for Tcp {
         
         Ok(())
     }
-    
+
     async fn notify_turn(
         &self,
         position: Position,

@@ -2,7 +2,7 @@ use gomokurs_cli::{configuration::{cli::Cli, player_configuration::PlayerConfigu
 use clap::Parser;
 use gomokurs_game_engine::domain::board_state_manager::{BoardStateManager, models::BoardSize};
 use gomokurs_game_engine::domain::game_manager::GameManager;
-use gomokurs_players_interface_coordinator::domain::player_interfaces_manager::{PlayerInterfacesManager, PlayerInterfacesManagerService};
+use gomokurs_coordinator::domain::player_interfaces_manager::{PlayerInterfacesManager, PlayerInterfacesManagerService};
 use std::{str::FromStr, sync::Arc};
 use tokio::time::Duration;
 
