@@ -25,7 +25,7 @@ impl ActionID {
     pub const PLAYER_PROTOCOL_VERSION: u8       = 0x0C;
     pub const PLAYER_READY: u8                  = 0x0D;
     pub const PLAYER_PLAY: u8                   = 0x0E;
-    pub const PLAYER_PLAYER_DESCRIPTION: u8     = 0x0F;
+    pub const PLAYER_METADATA: u8               = 0x0F;
     pub const PLAYER_UNKNOWN: u8                = 0x10;
     pub const PLAYER_ERROR: u8                  = 0x11;
     pub const PLAYER_MESSAGE: u8                = 0x12;
