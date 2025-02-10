@@ -81,14 +81,6 @@ where
                             }
                         }
 
-                        player.interface.notify_end()
-                            .await
-                            .map_err(|error| Error::NotifyError { error, color: player.color })?;
-                        
-                        opponent_player.interface.notify_end()
-                            .await
-                            .map_err(|error| Error::NotifyError { error, color: opponent_player.color })?;
-
                         return Ok(Some(end));
                     } else {
                         opponent_player.interface.notify_turn(position)
