@@ -3,4 +3,4 @@
 //! This module defines the domain, which forms the core logic of the crate,
 //! according to Hexagonal Architecture.
 
-pub mod player_interfaces_manager;
+pub mod coordinator;

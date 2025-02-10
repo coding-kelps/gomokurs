@@ -1,60 +1,7 @@
-//! Player-related models for the Game Manager port.
-
-pub use crate::domain::board_state_manager::models::{PlayerColor, Position};
-use crate::domain::game_manager::ports::PlayerNotifier;
+pub use gomokurs_game_engine::domain::game_engine::models::{PlayerColor, Position, GameEnd, Error as GameEngineError};
 use std::collections::HashMap;
-use thiserror::Error;
 use std::path::PathBuf;
 use std::fmt;
-use std::sync::Arc;
-use crate::domain::game_manager::models::timer::Timer;
-use tokio::time::Duration;
-
-/// Represents a player managed by the Game Manager.
-#[derive(Debug, Clone)]
-pub struct Player<N>
-where
-    N: PlayerNotifier
-{
-    /// The player's assigned color (either black or white).
-    pub color: PlayerColor,
-    /// Indicates if the player has declared readiness to play.
-    pub ready: bool,
-    /// Metadata about the player as key-value pairs.
-    pub description: Option<PlayerDescription>,
-    /// The notifier used to communicate with the player program.
-    pub notifier: Arc<N>,
-    /// The player's timers for turn and match durations.
-    pub timer: Arc<Timer>,
-}
-
-impl<N> Player<N>
-where
-    N: PlayerNotifier
-{
-    /// Creates a new player.
-    /// 
-    /// # Arguments
-    /// 
-    /// * `color` - The player's assigned color.
-    /// * `notifier` - An `Arc` pointing to an adapter implementing the `PlayerNotifier` port.
-    /// * `turn_duration` - The time allocated for a single turn.
-    /// * `match_duration` - The total time allocated for the match.
-    pub fn new(
-        color: PlayerColor,
-        notifier: Arc<N>,
-        turn_duration: Duration,
-        match_duration: Duration,
-    ) -> Self {
-        Self {
-            color,
-            ready: false,
-            description: None,
-            notifier: notifier,
-            timer: Arc::new(Timer::new(turn_duration, match_duration)),
-        }
-    }
-}
 
 /// Represents an action initiated by a player.
 ///
@@ -64,11 +11,11 @@ where
 #[derive(Debug, Clone)]
 pub enum PlayerAction {
     /// The player declares readiness to play.
-    Ok,
+    Ready,
     /// The player makes a move at the specified board position.
     Play(Position),
     /// Provides metadata about the player.
-    Description(PlayerDescription),
+    Metadata(PlayerMetadata),
     /// Indicates that the player did not recognize the last action.
     Unknown(String),
     /// Indicates an error encountered by the player.
@@ -79,6 +26,12 @@ pub enum PlayerAction {
     Debug(String),
     /// Suggests a move to the manager.
     Suggestion(Position),
+}
+
+/// Metadata about a player as a collection of key-value pairs.
+#[derive(Debug, Clone)]
+pub struct PlayerMetadata {
+    pub info: HashMap<String, String>,
 }
 
 /// Represents the state of a cell from the player's perspective.
@@ -114,12 +67,6 @@ impl fmt::Display for RelativeTurn {
 
         write!(f, "{},{}", self.position,self.field)
     }
-}
-
-/// Metadata about a player as a collection of key-value pairs.
-#[derive(Debug, Clone)]
-pub struct PlayerDescription {
-    pub info: HashMap<String, String>,
 }
 
 /// Represents information that can be sent by the manager to a player.
@@ -188,26 +135,4 @@ impl fmt::Display for RelativeGameEnd {
             RelativeGameEnd::Loose => write!(f, "2"),
         }
     }
-}
-
-
-/// Errors that may occur in the Game Manager service.
-#[derive(Debug, Error)]
-pub enum Error {
-    /// Error encountered while notifying a player.
-    #[error("failed to notify `{color}`: `{error}`")]
-    NotifyError{
-        error: NotifyError,
-        color: PlayerColor,
-    },
-    /// For implementation-specific error.
-    #[error(transparent)]
-    Unknown(#[from] anyhow::Error),
-}
-
-/// Errors that may occur while notifying a player.
-#[derive(Debug, Error)]
-pub enum NotifyError {
-    #[error(transparent)]
-    Unknown(#[from] anyhow::Error),
 }

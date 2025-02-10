@@ -297,17 +297,3 @@ impl fmt::Display for GameEnd
         }
     }
 }
-
-/// An error returned by the board state manager.
-#[derive(Debug, Error)]
-pub enum Error {
-    /// Attempted to play out of turn.
-    #[error("it is not `{0}` turn")]
-    NotPlayerTurn(PlayerColor),
-    /// An error occurred while setting a cell's status.
-    #[error("set cell error: `{0}`")]
-    SetCellError(#[from] SetCellError),
-    /// For implementation-specific error.
-    #[error(transparent)]
-    Unknown(#[from] anyhow::Error),
-}

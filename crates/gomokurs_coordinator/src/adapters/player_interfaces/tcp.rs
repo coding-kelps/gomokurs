@@ -1,7 +1,7 @@
 //! An implementation of the player interface leveraging TCP.
 
-pub mod tcp;
-mod listener;
-mod notifier;
+pub mod interface;
+mod protocol;
+mod handlers;
 
-pub use tcp::Tcp;
+pub use interface::{CreateTcpPlayerInterfaceConfiguration, TcpPlayerInterface, CreateTcpPlayerInterfaceError};
