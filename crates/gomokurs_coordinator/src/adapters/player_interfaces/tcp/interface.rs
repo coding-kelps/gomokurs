@@ -111,7 +111,7 @@ impl PlayerInterface for TcpPlayerInterface {
                 ActionID::PLAYER_PLAY => self.play_handler()
                     .await
                     .map_err(|e| ListenError::Unknown(anyhow!(e)))?,
-                ActionID::PLAYER_PLAYER_DESCRIPTION => self.player_description_handler()
+                ActionID::PLAYER_METADATA => self.player_description_handler()
                     .await
                     .map_err(|e| ListenError::Unknown(anyhow!(e)))?,
                 ActionID::PLAYER_UNKNOWN => self.unknown_handler()

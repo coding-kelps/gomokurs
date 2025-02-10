@@ -298,11 +298,11 @@ It is sent in response to [BEGIN](#begin), [TURN](#turn), or [BOARD](#board) act
 
 ---
 
-### PLAYER METADATA
+### METADATA
 
 #### Summary
 
-The **PLAYER METADATA** action is sent by the player in response to the manager’s [ABOUT](#about) action, providing metadata about the player.
+The **METADATA** action is sent by the player in response to the manager’s [ABOUT](#about) action, providing metadata about the player.
 
 The metadata is provided as a list of key-value pairs, separated by commas (and optional spaces), for example:
 
