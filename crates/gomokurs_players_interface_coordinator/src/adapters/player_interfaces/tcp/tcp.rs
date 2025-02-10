@@ -5,7 +5,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
-const PROTOCOL_VERSION: &str            = "0.1.0";
+const PROTOCOL_VERSION: &str            = "0.2.0";
 
 #[non_exhaustive]
 pub struct ActionID;
