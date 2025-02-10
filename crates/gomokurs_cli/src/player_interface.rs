@@ -1,25 +1,23 @@
-use gomokurs_coordinator::adapters::player_interfaces::{local::{local::CreateLocalProgramError, Local}, tcp::{tcp::{CreateTcpInterfaceConfiguration, CreateTcpInterfaceError}, Tcp}};
-use gomokurs_game_engine::domain::game_manager::models::{PlayerAction, PlayerColor, RelativeGameEnd};
-use gomokurs_coordinator::domain::player_interfaces_manager::models::ListenError;
-use gomokurs_coordinator::domain::player_interfaces_manager::ports::{PlayerListener, PlayerNotifier};
+use gomokurs_coordinator::adapters::player_interfaces::local::{LocalPlayerInterface, CreateLocalPlayerInterfaceError};
+use gomokurs_coordinator::adapters::player_interfaces::tcp::{CreateTcpPlayerInterfaceConfiguration, TcpPlayerInterface, CreateTcpPlayerInterfaceError};
+use gomokurs_coordinator::domain::coordinator::ports::PlayerInterface;
+use gomokurs_coordinator::domain::coordinator::models::*;
 use tokio::sync::mpsc::Sender;
 use tokio::net::{TcpStream, TcpListener};
-use gomokurs_game_engine::domain::board_state_manager::models::Position;
-use gomokurs_game_engine::domain::game_manager::models::{RelativeTurn, Information, NotifyError};
 use crate::configuration::player_configuration::{PlayerConfiguration, ProtocolConfiguration, TcpConfiguration};
 use thiserror::Error;
 
 pub enum PlayerInterfaceOption {
-    Local(Local),
-    Tcp(Tcp),
+    Local(LocalPlayerInterface),
+    Tcp(TcpPlayerInterface),
 }
 
 #[derive(Debug, Error)]
 pub enum CreatePlayerInterfaceFromCfgError {
     #[error(transparent)]
-    Local(#[from] CreateLocalProgramError),
+    Local(#[from] CreateLocalPlayerInterfaceError),
     #[error(transparent)]
-    Tcp(#[from] CreateTcpInterfaceError),
+    Tcp(#[from] CreateTcpPlayerInterfaceError),
     #[error("tcp connection error: `{0}`")]
     CreateClientError(#[from] tokio::io::Error),
 }
@@ -28,18 +26,18 @@ pub async fn create_player_interface_from_cfg(cfg: PlayerConfiguration) -> Resul
 {
     match cfg.protocol {
         ProtocolConfiguration::Stdio(stdio_cfg) => {
-            Ok(PlayerInterfaceOption::Local(Local::new(&stdio_cfg.binary, stdio_cfg.args).await?))
+            Ok(PlayerInterfaceOption::Local(LocalPlayerInterface::new(&stdio_cfg.binary, stdio_cfg.args).await?))
         },
         ProtocolConfiguration::Tcp(tcp_cfg) => {
             match tcp_cfg {
                 TcpConfiguration::Active(active_tcp_cfg) => {
                     let stream = TcpStream::connect(active_tcp_cfg.address).await?;
 
-                    let tcp_interface_cfg = CreateTcpInterfaceConfiguration{
+                    let tcp_interface_cfg = CreateTcpPlayerInterfaceConfiguration{
                         stream: stream,
                     };
 
-                    Ok(PlayerInterfaceOption::Tcp(Tcp::new(tcp_interface_cfg).await?))
+                    Ok(PlayerInterfaceOption::Tcp(TcpPlayerInterface::new(tcp_interface_cfg).await?))
 
                 },
                 TcpConfiguration::Passive(passive_tcp_cfg) => {
@@ -47,11 +45,11 @@ pub async fn create_player_interface_from_cfg(cfg: PlayerConfiguration) -> Resul
 
                     let (stream, _) = listener.accept().await?;
 
-                    let tcp_interface_cfg = CreateTcpInterfaceConfiguration{
+                    let tcp_interface_cfg = CreateTcpPlayerInterfaceConfiguration{
                         stream: stream,
                     };
 
-                    Ok(PlayerInterfaceOption::Tcp(Tcp::new(tcp_interface_cfg).await?))
+                    Ok(PlayerInterfaceOption::Tcp(TcpPlayerInterface::new(tcp_interface_cfg).await?))
                 },
             }
         }
@@ -59,7 +57,7 @@ pub async fn create_player_interface_from_cfg(cfg: PlayerConfiguration) -> Resul
 }
 
 // Implement the traits by delegating to the wrapped type
-impl PlayerListener for PlayerInterfaceOption {
+impl PlayerInterface for PlayerInterfaceOption {
     async fn listen(
         &self,
         color: PlayerColor,
@@ -70,9 +68,7 @@ impl PlayerListener for PlayerInterfaceOption {
             PlayerInterfaceOption::Tcp(tcp)     => tcp.listen(color, tx).await,
         }
     }
-}
 
-impl PlayerNotifier for PlayerInterfaceOption {
     async fn notify_start(
         &self,
         size: u8,

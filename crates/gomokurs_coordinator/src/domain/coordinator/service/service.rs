@@ -3,13 +3,11 @@
 //! This service manages player listener adapters, linking them to the
 //! corresponding `GameManager` handlers.
 
-use crate::domain::player_interfaces_manager::ports::{PlayerInterfacesManagerService, PlayerListener, PlayerNotifier};
-use gomokurs_game_engine::domain::game_manager::ports::GameManagerService;
+use crate::domain::coordinator::ports::{GameEngineService, CoordinatorService, PlayerInterface};
+use crate::domain::coordinator::service::player::Player;
 use tokio::task::JoinSet;
 use tokio::sync::mpsc::channel;
-use gomokurs_game_engine::domain::game_manager::models::{PlayerColor, PlayerAction};
-use gomokurs_game_engine::domain::board_state_manager::models::GameEnd;
-use crate::domain::player_interfaces_manager::models::Error;
+use crate::domain::coordinator::models::*;
 use std::sync::Arc;
 
 /// Represents the Player Interfaces Manager service.
@@ -19,29 +17,65 @@ use std::sync::Arc;
 /// - Routing player input to the appropriate `GameManager` handlers.
 /// - Providing a bridge between players and the game logic.
 #[derive(Debug, Clone)]
-pub struct Service
+pub struct Service<G, I>
+where
+    G: GameEngineService,
+    I: PlayerInterface,
 {
+    pub game: G,
+    pub black: Player<I>,
+    pub white: Player<I>,
 }
 
-impl Service
+impl<G, I> Service<G, I>
+where
+    G: GameEngineService,
+    I: PlayerInterface,
 {
     /// Creates a new instance of the Player Interfaces Manager service.
     pub fn new(
+        game: G,
+        black: Arc<I>,
+        white: Arc<I>,
     ) -> Self {
-        Self {}
+        Self {
+            game: game,
+            black: Player::new(PlayerColor::Black, black),
+            white: Player::new(PlayerColor::White, white),
+        }
+    }
+
+    pub async fn start_game(
+        &self
+    ) -> Result<(), Error>
+    {
+        let size = self.game.get_board_size().await;
+
+        self.black.interface
+            .notify_start(size.x)
+            .await
+            .map_err(|error| Error::NotifyError { error, color: self.black.color })?;
+        self.white.interface
+            .notify_start(size.x)
+            .await
+            .map_err(|error| Error::NotifyError { error, color: self.white.color })?;
+
+        self.black.interface
+            .notify_begin()
+            .await
+            .map_err(|error| Error::NotifyError { error, color: self.black.color })?;
+
+        Ok(())
     }
 }
 
-impl<I, G> PlayerInterfacesManagerService<I, G> for Service
+impl<G, I> CoordinatorService<G, I> for Service<G, I>
 where
-    I: PlayerListener + PlayerNotifier,
-    G: GameManagerService,
+    G: GameEngineService,
+    I: PlayerInterface,
 {
     async fn run(
         &mut self,
-        black_interface: Arc<I>,
-        white_interface: Arc<I>,
-        mut game: G,
     ) -> Result<GameEnd, Error>
     {
         let (actions_tx, mut actions_rx) = channel::<(PlayerColor, PlayerAction)>(100);
@@ -49,10 +83,14 @@ where
         
         // Start listening to players.
         let mut listeners = JoinSet::new();
+
+        let black_interface = self.black.interface.clone();
         listeners.spawn(async move { black_interface.listen(PlayerColor::Black, actions_tx_black).await });
+
+        let white_interface = self.white.interface.clone();
         listeners.spawn(async move { white_interface.listen(PlayerColor::White, actions_tx_white).await });
         
-        game.init_game().await?;
+        self.start_game().await?;
 
         loop {
             tokio::select! {
@@ -60,35 +98,35 @@ where
                     tracing::debug!("received {:?} from {}", action, color);
 
                     match action {
-                        PlayerAction::Ok => {                    
-                            game.handle_ok(color).await?;
+                        PlayerAction::Ready => {                    
+                            self.handle_ready(color).await?;
                         },
                         PlayerAction::Play(position) => {
-                            if let Some(end) = game.handle_play(color, position).await? {
+                            if let Some(end) = self.handle_play(color, position).await? {
                                 return Ok(end);
                             }
                         },
-                        PlayerAction::Description(description) => {
-                            game.handle_description(color, description).await?;
+                        PlayerAction::Metadata(metadata) => {
+                            self.handle_metadata(color, metadata).await?;
                         },
                         PlayerAction::Unknown(content) => {
-                            game.handle_unknown(color, content).await?;
+                            self.handle_unknown(color, content).await?;
                         },
                         PlayerAction::Error(content) => {
-                            game.handle_error(color, content).await?;
+                            self.handle_error(color, content).await?;
                         },
                         PlayerAction::Message(content) => {
-                            game.handle_message(color, content).await?;
+                            self.handle_message(color, content).await?;
                         },
                         PlayerAction::Debug(content) => {
-                            game.handle_debug(color, content).await?;
+                            self.handle_debug(color, content).await?;
                         },
                         PlayerAction::Suggestion(position) => {
-                            game.handle_suggestion(color, position).await?;
+                            self.handle_suggestion(color, position).await?;
                         },
                     }
                 },
-                res = game.run_timers() => {
+                res = self.game.run_timers() => {
                     match res {
                         Ok(end) => {
                             return Ok(end)

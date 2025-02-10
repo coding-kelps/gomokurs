@@ -1,15 +1,20 @@
-//! Defines the PlayerNotifier port used for communication with a player.
+use crate::domain::coordinator::models::*;
+use tokio::sync::mpsc::Sender;
 
-use crate::domain::board_state_manager::models::Position;
-use crate::domain::game_manager::models::{RelativeTurn, Information, RelativeGameEnd, NotifyError};
+pub trait PlayerInterface: Send + Sync + 'static {
+    /// Listens for player actions and sends them to the specified channel.
+    ///
+    /// # Arguments
+    ///
+    /// * `color` - The `PlayerColor` representing the player being listened to.
+    /// * `tx` - A `Sender` channel for forwarding `(PlayerColor, PlayerAction)`
+    /// tuples.
+    fn listen(
+        &self,
+        color: PlayerColor,
+        tx: Sender<(PlayerColor, PlayerAction)>,
+    ) -> impl std::future::Future<Output = Result<(), ListenError>> + Send;
 
-/// A trait representing notifications sent to a player from the game manager.
-/// 
-/// This trait defines the interface for asynchronously notifying players 
-/// about various game events and requesting player-specific information.
-/// Implementors of this trait are responsible for handling the asynchronous
-/// interactions with a player.
-pub trait PlayerNotifier: Send + Sync + 'static {
     /// Notifies the player of the initial gomoku board configuration.
     /// 
     /// # Arguments
