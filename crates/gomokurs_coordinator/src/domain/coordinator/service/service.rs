@@ -10,12 +10,18 @@ use tokio::sync::mpsc::channel;
 use crate::domain::coordinator::models::*;
 use std::sync::Arc;
 
-/// Represents the Player Interfaces Manager service.
-///
-/// This service is responsible for:
-/// - Managing player listener adapters.
-/// - Routing player input to the appropriate `GameManager` handlers.
-/// - Providing a bridge between players and the game logic.
+#[derive(Debug, Clone)]
+pub struct CreateCoordinatorConfiguration<G, I>
+where
+    G: GameEngineService,
+    I: PlayerInterface,
+{
+    pub game_engine: G,
+    pub black_player_interface: Arc<I>,
+    pub white_player_interface: Arc<I>,
+    pub game_mode: Mode,
+}
+
 #[derive(Debug, Clone)]
 pub struct Service<G, I>
 where
@@ -25,6 +31,7 @@ where
     pub game: G,
     pub black: Player<I>,
     pub white: Player<I>,
+    pub mode: Mode,
 }
 
 impl<G, I> Service<G, I>
@@ -34,14 +41,13 @@ where
 {
     /// Creates a new instance of the Player Interfaces Manager service.
     pub fn new(
-        game: G,
-        black: Arc<I>,
-        white: Arc<I>,
+        cfg: CreateCoordinatorConfiguration<G, I>,
     ) -> Self {
         Self {
-            game: game,
-            black: Player::new(PlayerColor::Black, black),
-            white: Player::new(PlayerColor::White, white),
+            game: cfg.game_engine,
+            black: Player::new(PlayerColor::Black, cfg.black_player_interface),
+            white: Player::new(PlayerColor::White, cfg.white_player_interface),
+            mode: cfg.game_mode,
         }
     }
 
@@ -63,6 +69,41 @@ where
         self.black.interface
             .notify_begin()
             .await
+            .map_err(|error| Error::NotifyError { error, color: self.black.color })?;
+
+        Ok(())
+    }
+
+    pub async fn end_game(
+        &self
+    ) -> Result<(), Error>
+    {
+        self.black.interface.notify_end()
+            .await
+            .map_err(|error| Error::NotifyError { error, color: self.black.color })?;
+    
+        self.white.interface.notify_end()
+            .await
+            .map_err(|error| Error::NotifyError { error, color: self.white.color })?;
+
+        Ok(())
+    }
+
+    pub async fn restart_game(
+        &mut self
+    ) -> Result<(), Error>
+    {
+        tracing::debug!("loop mode - restart game");
+
+        self.game.reset().await?;
+
+        self.black.interface.notify_restart().await
+            .map_err(|error| Error::NotifyError { error, color: self.black.color })?;
+
+        self.white.interface.notify_restart().await
+            .map_err(|error| Error::NotifyError { error, color: self.white.color })?;
+
+        self.black.interface.notify_begin().await
             .map_err(|error| Error::NotifyError { error, color: self.black.color })?;
 
         Ok(())
@@ -103,7 +144,14 @@ where
                         },
                         PlayerAction::Play(position) => {
                             if let Some(end) = self.handle_play(color, position).await? {
-                                return Ok(end);
+                                match self.mode {
+                                    Mode::SingleGame => {
+                                        self.end_game().await?;
+
+                                        return Ok(end)
+                                    },
+                                    Mode::Loop => self.restart_game().await?,
+                                }
                             }
                         },
                         PlayerAction::Metadata(metadata) => {

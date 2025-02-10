@@ -70,4 +70,12 @@ impl GameEngineService for Service
             }
         }
     }
+
+    async fn reset(
+        &mut self,
+    ) -> Result<(), Error> {
+        self.board = Board::new(self.board.size);
+
+        Ok(())
+    }
 }
