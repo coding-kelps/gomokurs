@@ -10,7 +10,7 @@ pub trait GameEngineService
         &self,
     ) -> impl std::future::Future<Output = Result<GameEnd, Error>>;
 
-    fn register_move(
+    fn register_player_move(
         &mut self,
         color: PlayerColor,
         position: Position,
