@@ -96,6 +96,8 @@ where
         tracing::debug!("loop mode - restart game");
 
         self.game.reset().await?;
+        self.black.ready = false;
+        self.white.ready = false;
 
         self.black.interface.notify_restart().await
             .map_err(|error| Error::NotifyError { error, color: self.black.color })?;
@@ -119,7 +121,7 @@ where
         &mut self,
     ) -> Result<GameEnd, Error>
     {
-        let (actions_tx, mut actions_rx) = channel::<(PlayerColor, PlayerAction)>(100);
+        let (actions_tx, mut actions_rx) = channel::<(PlayerColor, PlayerAction)>(10000);
         let (actions_tx_black, actions_tx_white) = (actions_tx.clone(), actions_tx.clone());
         
         // Start listening to players.
