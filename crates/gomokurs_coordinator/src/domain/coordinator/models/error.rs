@@ -19,8 +19,11 @@ pub enum Error {
     #[error("listeners join set error: `{0}`")]
     JoinError(#[from] JoinError),
     /// An error was returned by a player listener.
-    #[error("listener error: `{0}`")]
-    ListenError(#[from] ListenError),
+    #[error("{color}'s listener error: `{error}`")]
+    ListenError{
+        error: ListenError,
+        color: PlayerColor,
+    },
     /// Error encountered while notifying a player.
     #[error("failed to notify `{color}`: `{error}`")]
     NotifyError{
