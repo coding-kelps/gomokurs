@@ -96,6 +96,8 @@ where
                         .notify_error(&e.to_string()) // There is surely a proper way to handle this
                         .await
                         .map_err(|error| Error::NotifyError { error, color: player.color })?;
+
+                    return Err(e.into());
                 },
             }
         }

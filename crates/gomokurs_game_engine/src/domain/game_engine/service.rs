@@ -75,6 +75,7 @@ impl GameEngineService for Service
         &mut self,
     ) -> Result<(), Error> {
         self.board = Board::new(self.board.size);
+        self.turn_player = PlayerColor::Black;
 
         Ok(())
     }
