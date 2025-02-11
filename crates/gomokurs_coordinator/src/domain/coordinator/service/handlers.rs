@@ -47,7 +47,7 @@ where
                 .await
                 .map_err(|error| Error::NotifyError { error, color: player.color })?;
         } else {
-            match self.game.register_move(player.color, position).await {
+            match self.game.register_player_move(player.color, position).await {
                 Ok(res) => {
                     if let Some(end) = res {
                         match end {
@@ -86,9 +86,6 @@ where
                         opponent_player.interface.notify_turn(position)
                             .await
                             .map_err(|error| Error::NotifyError { error, color: opponent_player.color })?;
-                        
-                        // player.timer.pause().await;
-                        // opponent_player.timer.pause().await;
                     }
                 },
                 Err(e) => {
