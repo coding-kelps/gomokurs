@@ -50,7 +50,7 @@ impl GameEngineService for Service
         }
     }
 
-    async fn register_move(
+    async fn register_player_move(
         &mut self,
         color: PlayerColor,
         position: Position,
@@ -64,6 +64,16 @@ impl GameEngineService for Service
             if self.board.check_win(position).await {
                 Ok(Some(GameEnd::Win(color)))
             } else {
+                match self.turn_player {
+                    PlayerColor::Black => {
+                        self.black_player_timer.pause().await;
+                        self.white_player_timer.resume().await;
+                    },
+                    PlayerColor::White => {
+                        self.white_player_timer.pause().await;
+                        self.black_player_timer.resume().await;
+                    },
+                };
                 self.turn_player.switch();
 
                 Ok(None)
@@ -76,6 +86,11 @@ impl GameEngineService for Service
     ) -> Result<(), Error> {
         self.board = Board::new(self.board.size);
         self.turn_player = PlayerColor::Black;
+
+        self.black_player_timer.pause().await;
+        self.black_player_timer.reset().await;
+        self.white_player_timer.pause().await;
+        self.white_player_timer.reset().await;
 
         Ok(())
     }
