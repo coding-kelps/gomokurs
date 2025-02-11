@@ -128,10 +128,10 @@ where
         let mut listeners = JoinSet::new();
 
         let black_interface = self.black.interface.clone();
-        listeners.spawn(async move { black_interface.listen(PlayerColor::Black, actions_tx_black).await });
+        listeners.spawn(async move { (PlayerColor::Black, black_interface.listen(PlayerColor::Black, actions_tx_black).await) });
 
         let white_interface = self.white.interface.clone();
-        listeners.spawn(async move { white_interface.listen(PlayerColor::White, actions_tx_white).await });
+        listeners.spawn(async move { (PlayerColor::White, white_interface.listen(PlayerColor::White, actions_tx_white).await) });
         
         self.start_game().await?;
 
@@ -187,8 +187,8 @@ where
                 Some(res) = listeners.join_next() => {
                     match res {
                         Err(e) => return Err(e.into()),
-                        Ok(listener_res) => match listener_res {
-                            Err(e)=> return Err(e.into()),
+                        Ok((listener_color, listener_res)) => match listener_res {
+                            Err(e)=> return Err(Error::ListenError { error: e, color: listener_color }),
                             Ok(_) => continue,
                         }
                     }
