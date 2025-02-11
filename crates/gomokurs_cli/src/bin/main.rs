@@ -2,7 +2,6 @@ use gomokurs_cli::{configuration::{cli::Cli, player_configuration::PlayerConfigu
 use clap::Parser;
 use gomokurs_game_engine::domain::game_engine::{GameEngine, models::BoardSize};
 use gomokurs_coordinator::domain::coordinator::{CreateCoordinatorConfiguration, Coordinator, CoordinatorService};
-use gomokurs_coordinator::domain::coordinator::models::Mode;
 use std::{str::FromStr, sync::Arc};
 use tokio::time::Duration;
 
@@ -79,9 +78,11 @@ async fn main() {
         game_engine: freestyle_gomoku,
         black_player_interface: black_player,
         white_player_interface: white_player,
-        game_mode: Mode::Loop,
+        game_mode: cli.mode,
     };
 
     let mut coordinator = Coordinator::new(coordinator_cfg);
-    let _ = coordinator.run().await.unwrap();
+    if let Err(e) = coordinator.run().await {
+        tracing::error!("{}", e);
+    }
 }
